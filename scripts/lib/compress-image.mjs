@@ -48,11 +48,11 @@ const PRESETS = {
     maxDimension: 2560,
   },
   force: {
-    pngQuality: 40,
+    pngQuality: 25,
     pngEffort: 10,
-    jpegQuality: 50,
-    webpQuality: 48,
-    maxDimension: 1920,
+    jpegQuality: 38,
+    webpQuality: 35,
+    maxDimension: 1440,
   },
 };
 
