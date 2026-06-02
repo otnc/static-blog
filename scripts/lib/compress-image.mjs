@@ -36,20 +36,23 @@ export const SHARP_FORMAT_TO_EXT = {
 // pngQuality / jpegQuality / webpQuality: エンコーダ品質 (低いほど高圧縮)。
 // pngEffort  : libimagequant の探索コスト (高いほど高圧縮・低速)。
 // maxDimension: 長辺の上限 px。これを超える画像は縮小する (null で無効)。
+//
+// normal は十分強い圧縮を標準とする (アップロード保存・編集保存・pnpm comp)。
+// force はさらに画質を落としてサイズを最小化する (pnpm force-comp)。
 const PRESETS = {
   normal: {
-    pngQuality: 80,
-    pngEffort: 10,
-    jpegQuality: 82,
-    webpQuality: 82,
-    maxDimension: null,
-  },
-  force: {
     pngQuality: 55,
     pngEffort: 10,
     jpegQuality: 65,
     webpQuality: 62,
     maxDimension: 2560,
+  },
+  force: {
+    pngQuality: 40,
+    pngEffort: 10,
+    jpegQuality: 50,
+    webpQuality: 48,
+    maxDimension: 1920,
   },
 };
 
@@ -116,9 +119,8 @@ function encodeWebp(buffer, p) {
 }
 
 /**
- * 既存ファイルの再圧縮 (拡張子は保持)。
- * normal: PNG / JPEG が対象。
- * force : 加えて静止 WebP も再エンコードし、大きい画像は縮小する。
+ * 既存ファイルの再圧縮 (拡張子は保持)。PNG / JPEG / 静止 WebP が対象で、
+ * プリセットに応じて大きい画像は縮小する。force ほど画質を落とす。
  * 圧縮できない / サイズが縮まない場合は null。
  * @param {Buffer} buffer
  * @param {string} ext   拡張子 (例: ".png")
@@ -138,7 +140,7 @@ export async function recompress(buffer, ext, mode = "normal") {
           : await encodePngQuantized(buffer, p);
     } else if (JPEG_EXTS.includes(e)) {
       out = await encodeJpeg(buffer, p);
-    } else if (mode === "force" && e === ".webp") {
+    } else if (e === ".webp") {
       const meta = await readMeta(buffer);
       // アニメ WebP は再エンコードで壊れやすいので保持 (スキップ)。
       if (meta && (meta.pages ?? 1) > 1) return null;

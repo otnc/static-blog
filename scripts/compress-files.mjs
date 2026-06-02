@@ -62,8 +62,8 @@ async function compressFile(filePath, mode) {
   const buf = fs.readFileSync(filePath);
   const originalSize = buf.length;
 
-  // 拡張子を保持したまま再圧縮する。
-  // normal: PNG / JPEG のみ。force: 加えて静止 WebP も対象＋大きい画像は縮小。
+  // 拡張子を保持したまま再圧縮する (PNG / JPEG / 静止 WebP)。
+  // force ほど画質を落とし、大きい画像はより小さく縮小する。
   // 対象外の形式 / 縮まない場合は null (スキップ)。
   const outBuf = await recompress(buf, ext, mode);
   if (!outBuf) return null;
@@ -125,8 +125,8 @@ async function main() {
   }
   console.log(
     force
-      ? `[モード] 強圧縮 (force) — 画質を落とし大きい画像は縮小します`
-      : `[モード] 標準 (準ロスレス)`,
+      ? `[モード] 強圧縮 (force) — 画質を大きく落とし長辺 1920px まで縮小します`
+      : `[モード] 標準 — 画質を落としつつ長辺 2560px まで縮小します`,
   );
 
   if (!fs.existsSync(targetDir)) {
