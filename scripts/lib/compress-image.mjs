@@ -41,11 +41,11 @@ export const SHARP_FORMAT_TO_EXT = {
 // force はさらに画質を落としてサイズを最小化する (pnpm force-comp)。
 const PRESETS = {
   normal: {
-    pngQuality: 55,
+    pngQuality: 45,
     pngEffort: 10,
-    jpegQuality: 65,
-    webpQuality: 62,
-    maxDimension: 2560,
+    jpegQuality: 58,
+    webpQuality: 55,
+    maxDimension: 2048,
   },
   force: {
     pngQuality: 25,
