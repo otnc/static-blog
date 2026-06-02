@@ -9,7 +9,11 @@ import sharp from "sharp";
 import pug from "pug";
 import kuromoji from "kuromoji";
 import { toRomaji } from "wanakana";
-import { compressUpload, recompress } from "./lib/compress-image.mjs";
+import {
+  compressUpload,
+  compressPng,
+  recompress,
+} from "./lib/compress-image.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -804,9 +808,8 @@ async function main() {
           return;
         }
         const { buffer } = dataUrlToBuffer(dataUrl);
-        const png = await sharp(buffer)
-          .png({ compressionLevel: 9, adaptiveFiltering: true })
-          .toBuffer();
+        // 編集結果 (canvas 由来の非圧縮寄り PNG) をパレット量子化で軽量化する
+        const png = await compressPng(buffer);
         const base = path.basename(src, path.extname(src));
         const outPath = path.join(workDir, `${base}.png`);
         fs.writeFileSync(outPath, png);
@@ -856,20 +859,21 @@ async function main() {
         try {
           if (HEIC_EXTS.includes(srcExt) || isHeic(srcBuffer)) {
             const heicConvert = (await import("heic-convert")).default;
-            png = Buffer.from(await heicConvert({ buffer: srcBuffer, format: "PNG" }));
+            png = Buffer.from(
+              await heicConvert({ buffer: srcBuffer, format: "PNG" }),
+            );
           } else {
             const meta = await sharp(srcBuffer, { animated: true })
               .metadata()
               .catch(() => null);
             const animated = meta ? (meta.pages ?? 1) > 1 : false;
-            // アニメは APNG として変換し、アニメーションを保持する
+            // アニメは APNG として変換し、アニメーションを保持する。
+            // 静止画はパレット量子化で軽量な PNG にする。
             png = animated
               ? await sharp(srcBuffer, { animated: true })
                   .png({ compressionLevel: 9, adaptiveFiltering: true })
                   .toBuffer()
-              : await sharp(srcBuffer)
-                  .png({ compressionLevel: 9, adaptiveFiltering: true })
-                  .toBuffer();
+              : await compressPng(srcBuffer);
           }
         } catch (err) {
           sendJson(res, 500, {
