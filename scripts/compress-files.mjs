@@ -33,7 +33,8 @@ function resolveArticleId(args) {
     throw new Error(
       "記事IDが指定されておらず、現在のブランチも 'article/<id>' 形式ではありません。\n" +
         "  使い方: pnpm comp <id>  または  article/<id> ブランチに切り替えてください。\n" +
-        "          すべての記事を一括圧縮するには pnpm comp:all を実行してください。",
+        "          すべての記事を一括圧縮するには pnpm comp:all を実行してください。\n" +
+        "          より強い圧縮には pnpm force-comp / pnpm force-comp:all を使えます。",
     );
   }
   return branchId;
@@ -56,14 +57,15 @@ function walkFiles(dir) {
   return results;
 }
 
-async function compressFile(filePath) {
+async function compressFile(filePath, mode) {
   const ext = path.extname(filePath).toLowerCase();
   const buf = fs.readFileSync(filePath);
   const originalSize = buf.length;
 
-  // 拡張子を保持したまま準ロスレス再圧縮 (PNG / JPEG のみ)。
-  // WebP / AVIF / GIF / APNG / 動画 / 音声 / PDF → null (スキップ)。
-  const outBuf = await recompress(buf, ext);
+  // 拡張子を保持したまま再圧縮する (PNG / JPEG / 静止 WebP)。
+  // force ほど画質を落とし、大きい画像はより小さく縮小する。
+  // 対象外の形式 / 縮まない場合は null (スキップ)。
+  const outBuf = await recompress(buf, ext, mode);
   if (!outBuf) return null;
 
   fs.writeFileSync(filePath, outBuf);
@@ -74,7 +76,7 @@ async function compressFile(filePath) {
   };
 }
 
-async function compressDir(targetDir, baseDir) {
+async function compressDir(targetDir, baseDir, mode) {
   const allFiles = walkFiles(targetDir);
   let totalOriginal = 0;
   let totalNew = 0;
@@ -83,7 +85,7 @@ async function compressDir(targetDir, baseDir) {
 
   for (const filePath of allFiles) {
     const relPath = path.relative(baseDir, filePath).replace(/\\/g, "/");
-    const result = await compressFile(filePath);
+    const result = await compressFile(filePath, mode);
     if (result) {
       const pct = ((result.saved / result.originalSize) * 100).toFixed(1);
       console.log(
@@ -106,6 +108,8 @@ async function compressDir(targetDir, baseDir) {
 async function main() {
   const args = process.argv.slice(2);
   const all = args.includes("--all") || args.includes("-a");
+  const force = args.includes("--force") || args.includes("-f");
+  const mode = force ? "force" : "normal";
 
   let targetDir;
   if (all) {
@@ -119,6 +123,11 @@ async function main() {
       `[対象]   ${path.relative(rootDir, targetDir).replace(/\\/g, "/")}/`,
     );
   }
+  console.log(
+    force
+      ? `[モード] 強圧縮 (force) — 画質を大きく落とし長辺 1440px まで縮小します`
+      : `[モード] 標準 — 画質を落としつつ長辺 2048px まで縮小します`,
+  );
 
   if (!fs.existsSync(targetDir)) {
     console.error(`エラー: ディレクトリが見つかりません: ${targetDir}`);
@@ -127,7 +136,7 @@ async function main() {
   console.log("");
 
   const { totalOriginal, totalNew, compressedCount, skippedCount } =
-    await compressDir(targetDir, all ? publicFilesDir : targetDir);
+    await compressDir(targetDir, all ? publicFilesDir : targetDir, mode);
 
   console.log("");
   console.log(`完了: ${compressedCount} 件圧縮, ${skippedCount} 件スキップ`);
@@ -136,6 +145,10 @@ async function main() {
     const pct = ((totalSaved / totalOriginal) * 100).toFixed(1);
     console.log(`合計削減: ${formatSize(totalSaved)} (-${pct}%)`);
   }
+  // 圧縮後の総量 (スキップ分も含むディレクトリ全体のサイズ)。
+  console.log(
+    `圧縮後の総量: ${formatSize(totalNew)} (圧縮前 ${formatSize(totalOriginal)})`,
+  );
 }
 
 main().catch((err) => {
