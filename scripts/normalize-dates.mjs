@@ -18,7 +18,9 @@ let changed = 0;
 for (const file of files) {
   const text = fs.readFileSync(file, "utf8");
   const updated = text.replace(
-    /^\s*(pubDate|updatedDate):\s*"([^"]+)"/gm,
+    // 行頭の空白は水平空白のみ ([ \t])。\s だと CRLF 環境で ^ が \r 直後にも
+    // マッチし \n を巻き込んで改行を壊すため使わない。
+    /^[ \t]*(pubDate|updatedDate):[ \t]*"([^"]+)"/gm,
     (m, key, val) => {
       const d = jst(val);
       if (!d.isValid()) return m;
