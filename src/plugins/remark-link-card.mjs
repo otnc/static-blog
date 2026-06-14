@@ -13,6 +13,36 @@ import { load as cheerioLoad } from "cheerio";
 // ビルド時メモリキャッシュ（同一ビルド内での重複フェッチ防止）
 const ogpCache = new Map();
 
+// ---- OGP のローカル専用永続ディスクキャッシュ ----
+// 目的: ローカルの dev / build で外部 OGP の再取得（1件5秒タイムアウト）を避けて高速化する。
+// 重要: CI ではバイパスし常にライブ取得するため、デプロイ成果物の挙動は一切変わらない。
+//       失敗(null)はキャッシュしない（次回再取得）。`OGP_CACHE=0` で一時無効化可能。
+const DISK_CACHE_ENABLED =
+  !process.env.CI && process.env.OGP_CACHE !== "0";
+const DISK_CACHE_PATH = path.resolve(process.cwd(), ".cache/ogp.json");
+const diskCache = new Map();
+
+if (DISK_CACHE_ENABLED) {
+  try {
+    const raw = fs.readFileSync(DISK_CACHE_PATH, "utf8");
+    for (const [k, v] of Object.entries(JSON.parse(raw))) diskCache.set(k, v);
+  } catch {
+    // キャッシュ未作成 or 破損時は無視（空から開始）
+  }
+}
+
+function persistDiskCache() {
+  try {
+    fs.mkdirSync(path.dirname(DISK_CACHE_PATH), { recursive: true });
+    fs.writeFileSync(
+      DISK_CACHE_PATH,
+      JSON.stringify(Object.fromEntries(diskCache)),
+    );
+  } catch {
+    // 書き込み失敗は致命的でないため無視
+  }
+}
+
 // サイトオリジン取得
 function resolveSiteOrigin() {
   const fromEnv =
@@ -144,11 +174,24 @@ async function readHead(res) {
 async function fetchOgp(url) {
   if (ogpCache.has(url)) return ogpCache.get(url);
 
+  // ローカル永続キャッシュにヒットすればネットへ行かない（CI では無効）
+  if (DISK_CACHE_ENABLED && diskCache.has(url)) {
+    const cached = diskCache.get(url);
+    ogpCache.set(url, cached);
+    return cached;
+  }
+
   // 同一 URL の並行フェッチを防止（Promise を共有）
   const promise = _doFetchOgp(url);
   ogpCache.set(url, promise);
   const result = await promise;
   ogpCache.set(url, result);
+
+  // 成功結果のみローカルへ永続化（失敗 null は保存せず次回再取得）
+  if (DISK_CACHE_ENABLED && result) {
+    diskCache.set(url, result);
+    persistDiskCache();
+  }
   return result;
 }
 
