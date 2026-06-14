@@ -9,6 +9,7 @@ import TableOfContents from "../components/TableOfContents.astro";
 import AboutSidebar from "../components/AboutSidebar.astro";
 import { getCollection, render } from "astro:content";
 import { SITE_URL, sortPosts } from "../consts";
+import { findCustomThumbnailUrl } from "../utils/thumbnail";
 
 interface Props {
   id: string;
@@ -31,6 +32,7 @@ const {
 } = Astro.props;
 
 const ogImage = `/og/${id}.png`;
+const thumbnail = findCustomThumbnailUrl(id);
 
 const sortedTags = [...tags].sort((a, b) => a.localeCompare(b, "ja"));
 
@@ -117,6 +119,18 @@ while ((headingMatch = headingRegex.exec(slotContent)) !== null) {
                 </a>
               ))}
             </div>
+          )
+        }
+        {
+          thumbnail && (
+            <img
+              class="article-thumbnail"
+              src={thumbnail}
+              alt=""
+              decoding="async"
+              width="1200"
+              height="630"
+            />
           )
         }
       </header>

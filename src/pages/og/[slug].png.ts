@@ -3,27 +3,12 @@ import { getCollection } from "astro:content";
 import satori from "satori";
 import sharp from "sharp";
 import { SITE_TITLE } from "../../consts";
+import { findCustomThumbnailPath } from "../../utils/thumbnail";
 import fs from "node:fs";
 import path from "node:path";
 
 const TARGET_WIDTH = 1200;
 const TARGET_HEIGHT = 630;
-const VALID_EXTS = [
-  ".png",
-  ".jpg",
-  ".jpeg",
-  ".jpe",
-  ".jfif",
-  ".webp",
-  ".avif",
-  ".gif",
-  ".apng",
-  ".bmp",
-  ".tif",
-  ".tiff",
-  ".heic",
-  ".heif",
-] as const;
 
 let fontData: ArrayBuffer | null = null;
 const thumbnailCache = new Map<string, string>();
@@ -34,15 +19,6 @@ async function loadFont(): Promise<ArrayBuffer> {
   const fontPath = path.resolve("src/assets/NotoSansJP-Bold.woff2");
   fontData = fs.readFileSync(fontPath).buffer as ArrayBuffer;
   return fontData;
-}
-
-function findCustomThumbnail(slug: string): string | null {
-  const dir = path.resolve("public", "files", slug);
-  for (const ext of VALID_EXTS) {
-    const p = path.join(dir, `_thumbnail${ext}`);
-    if (fs.existsSync(p)) return p;
-  }
-  return null;
 }
 
 function loadDefaultThumbnail(): string {
@@ -57,7 +33,7 @@ async function loadThumbnail(slug: string): Promise<string> {
   const cached = thumbnailCache.get(slug);
   if (cached) return cached;
 
-  const customPath = findCustomThumbnail(slug);
+  const customPath = findCustomThumbnailPath(slug);
   if (!customPath) {
     const uri = loadDefaultThumbnail();
     thumbnailCache.set(slug, uri);
