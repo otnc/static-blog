@@ -34,10 +34,12 @@ if (DISK_CACHE_ENABLED) {
 function persistDiskCache() {
   try {
     fs.mkdirSync(path.dirname(DISK_CACHE_PATH), { recursive: true });
-    fs.writeFileSync(
-      DISK_CACHE_PATH,
-      JSON.stringify(Object.fromEntries(diskCache)),
-    );
+    // U+2028(LS)/U+2029(PS) はJSONとして正当だがエディタが警告を出すためエスケープ。
+    // パース結果は同一。
+    const json = JSON.stringify(Object.fromEntries(diskCache))
+      .replace(/\u2028/g, "\\u2028")
+      .replace(/\u2029/g, "\\u2029");
+    fs.writeFileSync(DISK_CACHE_PATH, json);
   } catch {
     // 書き込み失敗は致命的でないため無視
   }
