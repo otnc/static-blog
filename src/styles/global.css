@@ -932,6 +932,33 @@ main.container > section:first-child {
   flex-wrap: wrap;
   margin-top: 0.55em;
 }
+/* 記事ページ内のカスタムサムネイル（タグと本文の間） */
+.article-thumbnail {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: none;
+  aspect-ratio: 1200 / 630;
+  object-fit: cover;
+  border-radius: 12px;
+  margin: 1.5em 0;
+  background: var(--card-border);
+}
+
+/* カスタムサムネイル（設定されている記事のみ表示） */
+.article-card .card-thumbnail {
+  display: block;
+  width: calc(100% + 2.8em);
+  max-width: none;
+  height: auto;
+  max-height: none;
+  margin: -1.2em -1.4em 1em;
+  aspect-ratio: 1200 / 630;
+  object-fit: cover;
+  border-radius: 12px 12px 0 0;
+  background: var(--card-border);
+}
 
 /* ===== Tags ===== */
 .tag {

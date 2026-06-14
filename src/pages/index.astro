@@ -7,12 +7,20 @@ import type { CollectionEntry } from "astro:content";
 import { getCollection } from "astro:content";
 import { SITE_TITLE, SITE_DESCRIPTION, sortPosts } from "../consts";
 import AboutSidebar from "../components/AboutSidebar.astro";
+import { findCustomThumbnailUrl } from "../utils/thumbnail";
 
 type BlogPost = CollectionEntry<"blog">;
 
 const allPosts: BlogPost[] = sortPosts(
   (await getCollection("blog")).filter((p) => !p.data.hidden),
 );
+
+// カスタムサムネイルが設定されている記事は、その URL を引けるようにする
+const thumbnails = new Map<string, string>();
+for (const post of allPosts) {
+  const url = findCustomThumbnailUrl(post.id);
+  if (url) thumbnails.set(post.id, url);
+}
 
 // Collect all tags with per-tag article counts
 const allTags = [...new Set(allPosts.flatMap((p) => p.data.tags))].sort(
@@ -160,8 +168,19 @@ allPosts.forEach((p) =>
               data-pinned={post.data.pinned ? "true" : "false"}
             >
               <article
-                class={`article-card ${post.data.pinned ? "pinned" : ""}`}
+                class={`article-card ${post.data.pinned ? "pinned" : ""} ${thumbnails.has(post.id) ? "has-thumbnail" : ""}`}
               >
+                {thumbnails.has(post.id) && (
+                  <img
+                    class="card-thumbnail"
+                    src={thumbnails.get(post.id)}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    width="1200"
+                    height="630"
+                  />
+                )}
                 {post.data.pinned && (
                   <div class="pinned-badge">
                     <iconify-icon
