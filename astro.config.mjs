@@ -23,6 +23,11 @@ import { SITE_URL } from "./src/consts.ts";
 
 export default defineConfig({
   site: SITE_URL,
+  // OG 画像生成（satori+sharp）が CPU バウンドでルート生成の律速になっているため
+  // ページ生成を並列化する。出力は変わらない。
+  build: {
+    concurrency: 4,
+  },
   integrations: [
     mdx(),
     sitemap(),

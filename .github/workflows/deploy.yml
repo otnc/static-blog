@@ -47,6 +47,20 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # OG 画像の永続キャッシュ。内容（記事タイトル・サムネイル）が変わらなければ
+      # satori+sharp の再生成をスキップする。restore-keys で前回分を引き継ぎ、
+      # 変更/新規の記事だけ再生成される。
+      - name: Cache OG images
+        uses: actions/cache@v4
+        with:
+          path: .cache/og
+          # キャッシュファイル名は内容ハッシュ（タイトル+サムネ+CACHE_VERSION）で
+          # 命名されるため、このキーはキャッシュ再利用効率のためのもの。記事/サムネが
+          # 変わると新キーになり、restore-keys で前回分を引き継いで差分だけ再生成する。
+          key: ${{ runner.os }}-og-${{ hashFiles('src/content/blog/**', 'public/files/**/_thumbnail.*', 'public/thumbnail.png') }}
+          restore-keys: |
+            ${{ runner.os }}-og-
+
       - name: Build
         run: pnpm run build
 
