@@ -2,6 +2,7 @@
 import {
   GITHUB_URL,
   TWITTER_HANDLE,
+  MISSKEY_URL,
   PORTFOLIO_URL,
   AUTHOR_NAME,
   AUTHOR_BIO,
@@ -25,7 +26,7 @@ import {
   <div class="about-sidebar-links">
     <a href={PORTFOLIO_URL} target="_blank" rel="noopener noreferrer">
       <iconify-icon
-        icon="material-symbols:language"
+        icon="material-symbols:person-outline"
         width="14"
         height="14"
         aria-hidden="true"></iconify-icon>
@@ -50,6 +51,22 @@ import {
         height="13"
         aria-hidden="true"></iconify-icon>
       Twitter
+    </a>
+    <a href={MISSKEY_URL} target="_blank" rel="noopener noreferrer">
+      <iconify-icon
+        icon="simple-icons:misskey"
+        width="13"
+        height="13"
+        aria-hidden="true"></iconify-icon>
+      Misskey
+    </a>
+    <a href="/rss.xml">
+      <iconify-icon
+        icon="material-symbols:rss-feed"
+        width="13"
+        height="13"
+        aria-hidden="true"></iconify-icon>
+      RSS
     </a>
   </div>
 

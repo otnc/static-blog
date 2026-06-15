@@ -4,6 +4,7 @@ export const SITE_DESCRIPTION =
 export const SITE_URL = "https://blog.montblank.fun";
 export const TWITTER_HANDLE = "@rin_montblank";
 export const GITHUB_URL = "https://github.com/otnc";
+export const MISSKEY_URL = "https://misskey.otnc.dev/@m";
 export const PORTFOLIO_URL = "https://montblank.fun";
 export const AUTHOR_NAME = "まろん｡";
 export const AUTHOR_BIO = "技術とドメインの話が好きな変な人";

@@ -41,24 +41,32 @@ function resolveArticleId(explicit, field) {
 }
 
 function updateFrontmatterField(text, field, value) {
-  const fmMatch = text.match(/^---\n([\s\S]*?)\n---/);
+  // 改行コード（LF / CRLF）に依存せずフロントマターを検出
+  const fmMatch = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!fmMatch) {
     throw new Error("フロントマターが見つかりません。");
   }
   const fm = fmMatch[1];
-  const fieldRe = new RegExp(`^(${field}):\\s*.*$`, "m");
-  let newFm;
-  if (fieldRe.test(fm)) {
-    newFm = fm.replace(fieldRe, `${field}: "${value}"`);
-  } else {
+  // ファイルの既存の改行コードを維持する
+  const eol = fm.includes("\r\n") ? "\r\n" : "\n";
+  const lines = fm.split(/\r?\n/);
+  const newLine = `${field}: "${value}"`;
+
+  const idx = lines.findIndex((l) => new RegExp(`^${field}:`).test(l));
+  if (idx !== -1) {
+    lines[idx] = newLine;
+  } else if (field === "updatedDate") {
     // pubDate の直後に updatedDate を入れるのが慣例。なければ末尾追加。
-    if (field === "updatedDate" && /^pubDate:/m.test(fm)) {
-      newFm = fm.replace(/^(pubDate:.*)$/m, `$1\n${field}: "${value}"`);
-    } else {
-      newFm = `${fm}\n${field}: "${value}"`;
-    }
+    const pubIdx = lines.findIndex((l) => /^pubDate:/.test(l));
+    if (pubIdx !== -1) lines.splice(pubIdx + 1, 0, newLine);
+    else lines.push(newLine);
+  } else {
+    lines.push(newLine);
   }
-  return text.replace(fmMatch[0], `---\n${newFm}\n---`);
+
+  const newFm = lines.join(eol);
+  // 置換文字列の $ 特殊解釈を避けるため関数置換を使用
+  return text.replace(fmMatch[0], () => `---${eol}${newFm}${eol}---`);
 }
 
 function main() {
