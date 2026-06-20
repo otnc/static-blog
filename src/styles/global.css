@@ -429,39 +429,181 @@ details[open] summary::before {
   height: 54px;
 }
 
-.youtube-embed,
-.pdf-embed {
+.youtube-embed {
   margin: 1.5em 0;
   border-radius: 10px;
   overflow: hidden;
 }
-.youtube-embed iframe,
-.pdf-embed iframe {
+.youtube-embed iframe {
   display: block;
 }
 .twitter-embed {
   margin: 1.5em 0;
 }
 
-/* ── PDF embed: desktop / mobile split ─────────────────────────────── */
-.pdf-desktop {
-  display: block;
+/* ── PDF viewer (PDF.js) ───────────────────────────────────────────── */
+.pdf-viewer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: 1.5em 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg-secondary);
 }
-.pdf-mobile {
+.pdf-viewer:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* display 指定が hidden 属性を上書きしてしまうため明示的に打ち消す
+   (fallback 時はツールバー/ページを確実に非表示にする) */
+.pdf-toolbar[hidden],
+.pdf-pages[hidden] {
   display: none;
 }
-
-/* Mobile: hide iframe, show link card */
-@media (max-width: 768px) {
-  .pdf-desktop {
-    display: none;
-  }
-  .pdf-mobile {
-    display: block;
-  }
+.pdf-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5em;
+  padding: 0.4em 0.6em;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-primary);
+}
+.pdf-page-indicator {
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  padding-left: 0.3em;
+}
+.pdf-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+}
+.pdf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+.pdf-btn:hover {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+  text-decoration: none;
+}
+/* モード切替ボタンだけアイコン + 文字。文字数が変わっても幅を一定に保つ */
+.pdf-mode {
+  width: auto;
+  gap: 0.3em;
+  padding: 0 0.6em;
+  justify-content: flex-start;
+}
+.pdf-mode-label {
+  min-width: 7em; /* 「スクロール表示」(7文字) が収まる幅を確保 (切替で伸縮しない) */
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-align: left;
+}
+.pdf-pages {
+  position: relative;
+  max-height: 80vh;
+  overflow: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-secondary);
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.pdf-page {
+  flex: 0 0 auto;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.18);
+  border-radius: 4px;
+  background: #fff;
+  line-height: 0;
+}
+.pdf-page canvas {
+  display: block;
+  border-radius: 4px;
 }
 
-/* Fallback link card shown on mobile */
+/* プレゼン (紙芝居) モード: 1 ページを中央にフィット表示 */
+.pdf-viewer.mode-slide .pdf-pages {
+  justify-content: center;
+  min-height: 60vh;
+}
+
+/* ナビゲーション矢印 (プレゼンモードのみ表示) */
+.pdf-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    opacity 0.15s;
+}
+.pdf-nav:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+.pdf-nav:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.pdf-nav-prev {
+  left: 10px;
+}
+.pdf-nav-next {
+  right: 10px;
+}
+.pdf-viewer.mode-slide .pdf-nav {
+  display: inline-flex;
+}
+
+/* 全画面表示 */
+.pdf-viewer:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: #1a1a1a;
+}
+.pdf-viewer:fullscreen .pdf-pages {
+  max-height: none;
+  flex: 1 1 auto;
+  min-height: 0;
+  background: #1a1a1a;
+}
+
+/* Fallback link card (JS 無効/失敗時) */
 .pdf-link {
   display: flex;
   flex-direction: column;
