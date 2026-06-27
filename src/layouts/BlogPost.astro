@@ -308,6 +308,422 @@ while ((headingMatch = headingRegex.exec(slotContent)) !== null) {
       });
   </script>
 
+  <!-- PDF viewer (PDF.js) -->
+  <script>
+    type PdfModule = typeof import("pdfjs-dist");
+    let pdfjsPromise: Promise<PdfModule> | null = null;
+
+    async function loadPdfjs(): Promise<PdfModule> {
+      if (!pdfjsPromise) {
+        pdfjsPromise = (async () => {
+          const pdfjs = await import("pdfjs-dist");
+          // Vite の ?worker import で dev/build 両対応の Worker を生成
+          const { default: PdfWorker } = await import(
+            // @ts-ignore - ?worker は Worker コンストラクタを返す
+            "pdfjs-dist/build/pdf.worker.min.mjs?worker"
+          );
+          pdfjs.GlobalWorkerOptions.workerPort = new PdfWorker();
+          return pdfjs;
+        })();
+      }
+      return pdfjsPromise;
+    }
+
+    async function initPdfViewer(root: HTMLElement) {
+      if (root.dataset.pdfInit) return;
+      root.dataset.pdfInit = "1";
+
+      const src = root.dataset.pdfSrc;
+      if (!src) return;
+
+      const toolbar = root.querySelector<HTMLElement>(".pdf-toolbar");
+      const pagesEl = root.querySelector<HTMLElement>(".pdf-pages");
+      const fallback = root.querySelector<HTMLElement>(".pdf-fallback");
+      const indicator = root.querySelector<HTMLElement>(".pdf-page-indicator");
+      const zoomInBtn = root.querySelector<HTMLButtonElement>(".pdf-zoom-in");
+      const zoomOutBtn = root.querySelector<HTMLButtonElement>(".pdf-zoom-out");
+      const modeBtn = root.querySelector<HTMLButtonElement>(".pdf-mode");
+      const fsBtn = root.querySelector<HTMLButtonElement>(".pdf-fullscreen");
+      if (!pagesEl) return;
+
+      try {
+        const pdfjs = await loadPdfjs();
+        const pdf = await pdfjs.getDocument({ url: src }).promise;
+        const numPages = pdf.numPages;
+
+        type PageEntry = {
+          pageNum: number;
+          wrapper: HTMLElement;
+          canvas: HTMLCanvasElement;
+          viewportRatio: number; // height / width @ scale 1
+          renderedW: number; // 直近に描画した CSS 幅 (0 = 未描画)
+          rendering: boolean;
+        };
+        const entries: PageEntry[] = [];
+        let zoom = 1;
+        let currentPage = 1;
+        let mode: "scroll" | "slide" = "scroll";
+
+        // 表示を viewer モードに切り替え
+        fallback?.setAttribute("hidden", "");
+        toolbar?.removeAttribute("hidden");
+        pagesEl.removeAttribute("hidden");
+        root.classList.add("pdf-ready", "mode-scroll");
+
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        // モード/ズーム/コンテナに応じたページの目標 CSS 幅
+        function pageCssWidth(entry: PageEntry): number {
+          const ratio = entry.viewportRatio;
+          if (mode === "slide") {
+            // 全体が収まるよう幅・高さ両方にフィット (contain)
+            const cw = Math.max(120, pagesEl!.clientWidth - 24);
+            const ch = Math.max(120, pagesEl!.clientHeight - 24);
+            let w = cw;
+            if (w * ratio > ch) w = ch / ratio;
+            return w * zoom;
+          }
+          return Math.max(200, pagesEl!.clientWidth - 24) * zoom;
+        }
+
+        function setCanvasCss(entry: PageEntry) {
+          const w = pageCssWidth(entry);
+          entry.canvas.style.width = `${Math.floor(w)}px`;
+          entry.canvas.style.height = `${Math.floor(w * entry.viewportRatio)}px`;
+        }
+
+        async function renderPage(entry: PageEntry) {
+          const targetW = Math.floor(pageCssWidth(entry));
+          if (entry.rendering || entry.renderedW === targetW) return;
+          entry.rendering = true;
+          try {
+            const page = await pdf.getPage(entry.pageNum);
+            const unscaled = page.getViewport({ scale: 1 });
+            const scale = targetW / unscaled.width;
+            const viewport = page.getViewport({ scale });
+
+            const canvas = entry.canvas;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return;
+            canvas.width = Math.floor(viewport.width * dpr);
+            canvas.height = Math.floor(viewport.height * dpr);
+            canvas.style.width = `${Math.floor(viewport.width)}px`;
+            canvas.style.height = `${Math.floor(viewport.height)}px`;
+
+            await page.render({
+              canvas,
+              canvasContext: ctx,
+              viewport,
+              transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : undefined,
+            }).promise;
+            entry.renderedW = targetW;
+          } catch (err) {
+            console.error("PDF page render error:", err);
+          } finally {
+            entry.rendering = false;
+          }
+        }
+
+        // ページのプレースホルダ生成 (高さは比率から先に確保)
+        for (let i = 1; i <= numPages; i++) {
+          const page = await pdf.getPage(i);
+          const vp = page.getViewport({ scale: 1 });
+          const wrapper = document.createElement("div");
+          wrapper.className = "pdf-page";
+          wrapper.dataset.page = String(i);
+          const canvas = document.createElement("canvas");
+          wrapper.appendChild(canvas);
+          pagesEl.appendChild(wrapper);
+          const entry: PageEntry = {
+            pageNum: i,
+            wrapper,
+            canvas,
+            viewportRatio: vp.height / vp.width,
+            renderedW: 0,
+            rendering: false,
+          };
+          entries.push(entry);
+          setCanvasCss(entry);
+        }
+
+        // ── 紙芝居モード用のナビゲーション矢印 (オーバーレイ) ──
+        function makeNav(cls: string, label: string, icon: string) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = `pdf-nav ${cls}`;
+          btn.setAttribute("aria-label", label);
+          btn.title = label;
+          btn.innerHTML = `<iconify-icon icon="${icon}" width="20" height="20" aria-hidden="true"></iconify-icon>`;
+          root.appendChild(btn);
+          return btn;
+        }
+        const prevNav = makeNav(
+          "pdf-nav-prev",
+          "前のページ",
+          "material-symbols:chevron-left",
+        );
+        const nextNav = makeNav(
+          "pdf-nav-next",
+          "次のページ",
+          "material-symbols:chevron-right",
+        );
+
+        function updateIndicator() {
+          if (indicator) indicator.textContent = `${currentPage} / ${numPages}`;
+        }
+        function updateNav() {
+          prevNav.disabled = currentPage <= 1;
+          nextNav.disabled = currentPage >= numPages;
+        }
+
+        function isNear(entry: PageEntry): boolean {
+          const r = entry.wrapper.getBoundingClientRect();
+          const pr = pagesEl!.getBoundingClientRect();
+          return r.bottom > pr.top - 300 && r.top < pr.bottom + 300;
+        }
+
+        // 表示中 (+ 近接) のページのみ描画
+        function renderVisible() {
+          if (mode === "slide") {
+            [currentPage - 2, currentPage - 1, currentPage].forEach((idx) => {
+              const e = entries[idx];
+              if (e) renderPage(e);
+            });
+          } else {
+            entries.forEach((e) => {
+              if (isNear(e)) renderPage(e);
+            });
+          }
+        }
+
+        // ── スクロールモードの現在ページ計算 (正確) ──
+        let scrollRaf = 0;
+        function computeScrollPage() {
+          const mid = pagesEl!.scrollTop + pagesEl!.clientHeight * 0.4;
+          let p = 1;
+          for (const e of entries) {
+            if (e.wrapper.offsetTop <= mid) p = e.pageNum;
+            else break;
+          }
+          if (p !== currentPage) {
+            currentPage = p;
+            updateIndicator();
+            updateNav();
+          }
+        }
+        pagesEl.addEventListener("scroll", () => {
+          if (mode !== "scroll" || scrollRaf) return;
+          scrollRaf = requestAnimationFrame(() => {
+            scrollRaf = 0;
+            computeScrollPage();
+            renderVisible();
+          });
+        });
+
+        // ── レイアウト再計算 (リサイズ/ズーム/モード/全画面) ──
+        let relayoutTimer: number | undefined;
+        function relayout(immediate = false) {
+          const run = () => {
+            entries.forEach((e) => setCanvasCss(e));
+            renderVisible();
+          };
+          if (immediate) {
+            run();
+            return;
+          }
+          window.clearTimeout(relayoutTimer);
+          relayoutTimer = window.setTimeout(run, 150);
+        }
+
+        // ── ページ移動 ──
+        function goTo(n: number) {
+          currentPage = Math.min(numPages, Math.max(1, n));
+          if (mode === "slide") {
+            entries.forEach((e) => {
+              e.wrapper.hidden = e.pageNum !== currentPage;
+            });
+            pagesEl!.scrollTop = 0;
+            renderVisible();
+          } else {
+            const cur = entries[currentPage - 1];
+            if (cur)
+              pagesEl!.scrollTo({
+                top: cur.wrapper.offsetTop,
+                behavior: "smooth",
+              });
+          }
+          updateIndicator();
+          updateNav();
+        }
+        prevNav.addEventListener("click", () => goTo(currentPage - 1));
+        nextNav.addEventListener("click", () => goTo(currentPage + 1));
+
+        // ── モード切替 (スクロール ⇄ プレゼン) ──
+        function setMode(next: "scroll" | "slide") {
+          mode = next;
+          root.classList.toggle("mode-slide", mode === "slide");
+          root.classList.toggle("mode-scroll", mode === "scroll");
+          if (modeBtn) {
+            const label = mode === "slide" ? "スクロール表示" : "プレゼン表示";
+            modeBtn
+              .querySelector("iconify-icon")
+              ?.setAttribute(
+                "icon",
+                mode === "slide"
+                  ? "material-symbols:view-day-outline"
+                  : "material-symbols:slideshow",
+              );
+            const labelEl = modeBtn.querySelector<HTMLElement>(".pdf-mode-label");
+            if (labelEl) labelEl.textContent = label;
+            modeBtn.setAttribute("aria-label", label);
+            modeBtn.title = label;
+          }
+          entries.forEach((e) => {
+            e.wrapper.hidden = mode === "slide" && e.pageNum !== currentPage;
+          });
+          relayout(true);
+          if (mode === "scroll") {
+            const cur = entries[currentPage - 1];
+            if (cur) pagesEl!.scrollTop = cur.wrapper.offsetTop;
+          }
+          root.focus({ preventScroll: true });
+        }
+        modeBtn?.addEventListener("click", () =>
+          setMode(mode === "slide" ? "scroll" : "slide"),
+        );
+
+        // ── 全画面 ──
+        function toggleFullscreen() {
+          if (document.fullscreenElement === root) {
+            document.exitFullscreen?.();
+          } else {
+            root.requestFullscreen?.().catch(() => {});
+          }
+        }
+        fsBtn?.addEventListener("click", toggleFullscreen);
+        document.addEventListener("fullscreenchange", () => {
+          const fs = document.fullscreenElement === root;
+          root.classList.toggle("is-fullscreen", fs);
+          fsBtn
+            ?.querySelector("iconify-icon")
+            ?.setAttribute(
+              "icon",
+              fs
+                ? "material-symbols:fullscreen-exit"
+                : "material-symbols:fullscreen",
+            );
+          // 全画面はプレゼン表示が見やすいので自動で切替
+          if (fs && mode === "scroll") setMode("slide");
+          requestAnimationFrame(() => relayout(true));
+        });
+
+        // ── ズーム ──
+        function applyZoom(next: number) {
+          zoom = Math.min(3, Math.max(0.5, next));
+          entries.forEach((e) => setCanvasCss(e));
+          relayout();
+        }
+        zoomInBtn?.addEventListener("click", () => applyZoom(zoom + 0.25));
+        zoomOutBtn?.addEventListener("click", () => applyZoom(zoom - 0.25));
+
+        // ── キーボード操作 ──
+        root.tabIndex = 0;
+        root.addEventListener("keydown", (e) => {
+          if (mode === "slide" && (e.key === "ArrowRight" || e.key === "ArrowDown")) {
+            goTo(currentPage + 1);
+            e.preventDefault();
+          } else if (
+            mode === "slide" &&
+            (e.key === "ArrowLeft" || e.key === "ArrowUp")
+          ) {
+            goTo(currentPage - 1);
+            e.preventDefault();
+          } else if (e.key === "f" || e.key === "F") {
+            toggleFullscreen();
+          }
+        });
+
+        // ── マウスホイール (紙芝居) ──
+        let wheelLock = false;
+        pagesEl.addEventListener(
+          "wheel",
+          (e) => {
+            if (mode !== "slide" || zoom > 1) return;
+            e.preventDefault(); // ページ全体のスクロールを抑止
+            const delta = e.deltaY || e.deltaX;
+            if (wheelLock || Math.abs(delta) < 4) return;
+            wheelLock = true;
+            goTo(currentPage + (delta > 0 ? 1 : -1));
+            window.setTimeout(() => {
+              wheelLock = false;
+            }, 160);
+          },
+          { passive: false },
+        );
+
+        // ── スワイプ (紙芝居) ──
+        let touchX = 0;
+        let touchY = 0;
+        pagesEl.addEventListener(
+          "touchstart",
+          (e) => {
+            touchX = e.changedTouches[0].clientX;
+            touchY = e.changedTouches[0].clientY;
+          },
+          { passive: true },
+        );
+        pagesEl.addEventListener(
+          "touchend",
+          (e) => {
+            if (mode !== "slide" || zoom > 1) return;
+            const dx = e.changedTouches[0].clientX - touchX;
+            const dy = e.changedTouches[0].clientY - touchY;
+            if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+              goTo(currentPage + (dx < 0 ? 1 : -1));
+            }
+          },
+          { passive: true },
+        );
+
+        // ── リサイズ ──
+        window.addEventListener("resize", () => relayout());
+
+        // 初期描画
+        updateIndicator();
+        updateNav();
+        relayout(true);
+      } catch (err) {
+        console.error("PDF viewer init error:", err);
+        // 失敗時はフォールバックに戻し、全ボタン (ツールバー + ナビ矢印) を消す
+        toolbar?.setAttribute("hidden", "");
+        pagesEl.setAttribute("hidden", "");
+        root.querySelectorAll(".pdf-nav").forEach((el) => el.remove());
+        root.classList.remove("pdf-ready", "mode-scroll", "mode-slide");
+        fallback?.removeAttribute("hidden");
+      }
+    }
+
+    function setupPdfViewers() {
+      const viewers =
+        document.querySelectorAll<HTMLElement>(".pdf-viewer[data-pdf-src]");
+      if (viewers.length === 0) return;
+      const io = new IntersectionObserver(
+        (entries, obs) => {
+          for (const e of entries) {
+            if (e.isIntersecting) {
+              obs.unobserve(e.target);
+              initPdfViewer(e.target as HTMLElement);
+            }
+          }
+        },
+        { rootMargin: "400px 0px" },
+      );
+      viewers.forEach((v) => io.observe(v));
+    }
+
+    setupPdfViewers();
+  </script>
+
   <!-- Twitter embed -->
   <script
     is:inline

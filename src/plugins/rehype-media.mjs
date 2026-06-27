@@ -117,38 +117,136 @@ function buildAudio(src) {
   };
 }
 
+function iconifyIcon(icon, size = "20") {
+  return {
+    type: "element",
+    tagName: "iconify-icon",
+    properties: {
+      icon,
+      width: size,
+      height: size,
+      "aria-hidden": "true",
+    },
+    children: [],
+  };
+}
+
+/**
+ * PDF.js ベースの自前ビューワー。
+ * デスクトップ/スマホ問わずページを canvas 描画する。
+ * JS が無効・失敗した場合は .pdf-fallback の「開く」リンクが表示される
+ * (プログレッシブエンハンスメント)。
+ * 実際の初期化は BlogPost.astro のスクリプトが行う。
+ */
 function buildPdf(src, alt) {
   const label = alt || "PDF";
   return {
     type: "element",
     tagName: "div",
-    properties: { className: ["pdf-embed"] },
+    properties: {
+      className: ["pdf-viewer"],
+      "data-pdf-src": src,
+      "data-pdf-label": label,
+    },
     children: [
-      // desktop iframe
+      // ツールバー (JS 初期化後に表示)
       {
         type: "element",
         tagName: "div",
-        properties: { className: ["pdf-desktop"] },
+        properties: { className: ["pdf-toolbar"], hidden: true },
         children: [
           {
             type: "element",
-            tagName: "iframe",
-            properties: {
-              src,
-              width: "100%",
-              height: "600",
-              style: "border: none; border-radius: 8px; display: block;",
-              title: label,
-            },
-            children: [],
+            tagName: "span",
+            properties: { className: ["pdf-page-indicator"] },
+            children: [{ type: "text", value: "" }],
+          },
+          {
+            type: "element",
+            tagName: "div",
+            properties: { className: ["pdf-toolbar-actions"] },
+            children: [
+              {
+                type: "element",
+                tagName: "button",
+                properties: {
+                  type: "button",
+                  className: ["pdf-btn", "pdf-mode"],
+                  "aria-label": "プレゼン表示",
+                  title: "プレゼン表示",
+                },
+                children: [
+                  iconifyIcon("material-symbols:slideshow"),
+                  {
+                    type: "element",
+                    tagName: "span",
+                    properties: { className: ["pdf-mode-label"] },
+                    children: [{ type: "text", value: "プレゼン表示" }],
+                  },
+                ],
+              },
+              {
+                type: "element",
+                tagName: "button",
+                properties: {
+                  type: "button",
+                  className: ["pdf-btn", "pdf-zoom-out"],
+                  "aria-label": "縮小",
+                  title: "縮小",
+                },
+                children: [iconifyIcon("material-symbols:zoom-out")],
+              },
+              {
+                type: "element",
+                tagName: "button",
+                properties: {
+                  type: "button",
+                  className: ["pdf-btn", "pdf-zoom-in"],
+                  "aria-label": "拡大",
+                  title: "拡大",
+                },
+                children: [iconifyIcon("material-symbols:zoom-in")],
+              },
+              {
+                type: "element",
+                tagName: "button",
+                properties: {
+                  type: "button",
+                  className: ["pdf-btn", "pdf-fullscreen"],
+                  "aria-label": "全画面表示",
+                  title: "全画面表示",
+                },
+                children: [iconifyIcon("material-symbols:fullscreen")],
+              },
+              {
+                type: "element",
+                tagName: "a",
+                properties: {
+                  href: src,
+                  target: "_blank",
+                  rel: ["noopener", "noreferrer"],
+                  className: ["pdf-btn", "pdf-open"],
+                  "aria-label": "新しいタブで開く",
+                  title: "新しいタブで開く",
+                },
+                children: [iconifyIcon("material-symbols:open-in-new")],
+              },
+            ],
           },
         ],
       },
-      // mobile fallback
+      // ページ描画領域 (JS 初期化後に表示)
       {
         type: "element",
         tagName: "div",
-        properties: { className: ["pdf-mobile"] },
+        properties: { className: ["pdf-pages"], hidden: true },
+        children: [],
+      },
+      // JS 無効/失敗時のフォールバック
+      {
+        type: "element",
+        tagName: "div",
+        properties: { className: ["pdf-fallback"] },
         children: [
           {
             type: "element",
@@ -160,17 +258,7 @@ function buildPdf(src, alt) {
               className: ["pdf-link"],
             },
             children: [
-              {
-                type: "element",
-                tagName: "iconify-icon",
-                properties: {
-                  icon: "material-symbols:picture-as-pdf",
-                  width: "32",
-                  height: "32",
-                  "aria-hidden": "true",
-                },
-                children: [],
-              },
+              iconifyIcon("material-symbols:picture-as-pdf", "32"),
               {
                 type: "element",
                 tagName: "span",
