@@ -9,6 +9,7 @@ import TableOfContents from "../components/TableOfContents.astro";
 import AboutSidebar from "../components/AboutSidebar.astro";
 import { getCollection, render } from "astro:content";
 import { SITE_URL, sortPosts } from "../consts";
+import he from "he";
 import { findCustomThumbnailUrl } from "../utils/thumbnail";
 
 interface Props {
@@ -61,7 +62,7 @@ while ((headingMatch = headingRegex.exec(slotContent)) !== null) {
   const [, level, attrs, rawHtml] = headingMatch;
   const idMatch = attrs.match(/\bid="([^"]*)"/);
   if (!idMatch) continue;
-  const text = rawHtml.replace(/<[^>]*>/g, "").trim();
+  const text = he.decode(rawHtml.replace(/<[^>]*>/g, "").trim());
   headings.push({ level: parseInt(level), id: idMatch[1], text });
 }
 ---
