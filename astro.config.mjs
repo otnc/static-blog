@@ -9,6 +9,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
+import remarkEmoji from "remark-emoji";
 
 import remarkDetails from "./src/plugins/remark-details.mjs";
 import remarkMermaid from "./src/plugins/remark-mermaid.mjs";
@@ -80,6 +81,7 @@ export default defineConfig({
     remarkPlugins: [
       remarkGfm,
       remarkBreaks,
+      remarkEmoji,
       remarkMath,
       remarkUnderline, // remarkGfm の後に実行（~~ 解決後に __ を処理）
       remarkDetails,
