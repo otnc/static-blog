@@ -27,11 +27,11 @@
     "date:update": "node scripts/update-date.mjs updatedDate"
   },
   "dependencies": {
-    "@astrojs/mdx": "^6.0.3",
+    "@astrojs/mdx": "^7.0.0",
     "@astrojs/rss": "^4.0.18",
     "@astrojs/sitemap": "^3.7.3",
     "@iconify-json/material-symbols": "^1.2.62",
-    "astro": "^6.4.6",
+    "astro": "^7.0.3",
     "astro-icon": "^1.1.5",
     "cheerio": "^1.2.0",
     "dayjs": "^1.11.21",
