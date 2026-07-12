@@ -1,0 +1,106 @@
+---
+title: "開発環境がなかった僕がGlitchでグリッチしていた話"
+description: "これから Node.js v16.14.2 で Discord.js v13 を動かすあなたへ"
+pubDate: "2026-07-08 22:59"
+updatedDate: null
+tags: ["備忘録", "思い出"]
+pinned: false
+---
+
+SSDのデータを整理していたら高校時代に作っていたDiscord Botのコードがいくつか出てきました。
+懐かしさから当時のコードを読んでいると、動作環境ゆえの苦労がみえてきたので、当時を思い出しながら(誰にも需要がない)備忘録としてまとめようと思います。
+
+## 高校時代の苦悩と救いの手
+
+高校時代の僕にはパソコンがありませんでした。
+あったのは高校入学時に購入した、学校推奨の~~クソザコ~~Chromebook。
+
+多分型番調べて出てきたこれ。
+
+@[](https://www.asus.com/jp/news/7cjgay42wh4fym9e/)
+
+メインメモリ4GBとか今の自分から見ればありえない話し:bangbang:という感じですが、当時はこんなのをデベロッパーモードにしてVS Codeをインストールしてなんやかんやしてました。
+ただ、デベロッパーモードにすると明らかに挙動が遅くなり、VS Codeは作業していると「ウィンドウは応答していません」と表示されて固まり、とても作業できる環境ではなかった。
+
+プログラミングを始めたきっかけはDiscordで音楽Botを作成したい、という目標でした。
+しかし、ホスティング環境もお金もなかった。
+
+そんな自分が見つけ、愛用していたのが [Glitch](https://glitch.com/) というサービス。
+WebサイトホスティングやNode.jsプロジェクトホスティングを無料で行えるサービスです。Webエディタもついてたのでそこでコードを書いてました。
+
+無料プランの月の上限も1000時間あり、 $1000 \div 24 = 41.66 \cdots$ と一か月あたり41日間(！？)もプロジェクトを動かせるという太っ腹ぶりでした。常時稼働させていても1プロジェクトならお釣りが来ます。
+無料プランだとユーザーがプロジェクトページから離れ5分経つとプロジェクトが停止する仕様がありましたが、Google Apps ScriptなどでPOSTを送ることで簡単に回避可能でした。
+PCもサーバーも金もなかった僕にとってありがたい存在でした。
+
+コード例: https://github.com/oto-lab/glitch-all-times
+
+```js
+function send() {
+  const GLITCH_PROJECT_NAME = "<GLITCH_PROJECT_NAME>";
+  const URL = `https://${GLITCH_PROJECT_NAME}.glitch.me/`;
+  response = UrlFetchApp.fetch(URL, {
+    'contentType': 'application/json; charset=utf-8',
+    'method': 'post',
+    'payload': {
+      'type': 'wake',
+    },
+    'muteHttpExceptions': true,
+  });
+}
+```
+
+しかし、2025年7月にサービスを終了。
+
+> On July 8, 2025 Glitch project hosting and user profiles will be shut down. Your Glitch dashboard will remain available as usual through the end of 2025, with access to download all of your code for your projects, as well as a new feature to set up redirects for your project subdomains so your URLs keep working.
+>
+> 訳) 2025/07/08、Glitch プロジェクトのホスティングとユーザー プロファイルがシャットダウンされます。 Glitch ダッシュボードは 2025 年末まで通常どおり利用可能で、プロジェクトのすべてのコードをダウンロードできるほか、URL が機能し続けるようにプロジェクトのサブドメインのリダイレクトを設定する新しい機能も備えています。
+>
+> 引用: [Important Changes are Coming to Glitch](https://blog.glitch.com/post/changes-are-coming-to-glitch)
+
+現在ではアクセスしても過去のブログしか読めなくなっており、ユーザーが作成したプロジェクトや自分のプロジェクトは閲覧・ダウンロードできない状態になっています。
+
+## Glitchの欠点
+
+しかし、そんなGlitchを使う上でネックだったのが、対応している(利用可能な)Node.jsのバージョンが古かったことです。
+現在削除されているページのWeb Archiveによると、対応バージョンは以下のようになっていました。
+
+@[](https://web.archive.org/web/20230327155947/https://nodeversions.glitch.me/)
+
+```
+Avaliable nodejs versions
+v10.15.3
+v10.24.1
+v11.15.0
+v12.0.0
+v14.18.1
+v14.19.1
+v16.12.0
+v16.14.2
+v6.17.1
+v8.17.0
+v9.11.2
+```
+
+この中で一番新しいのは `v16.14.2` (2022/03/18 リリース / 2023/09/11 EOL)。本格的にプログラミングを始め、Glitchを使い始めた時点ではギリギリサポートされていました。しかし、ほぼ1年後にEOL(サポート終了)。その後Glitchのサービス終了まで対応バージョンは増えることなく。GlitchのNode.jsは現行バージョンからは取り残されていきました。今思えばNode.jsの対応が更新されないことからサービス終了が見えていましたね…
+
+```js
+const { Client, MessageEmbed } = require("discord.js");
+const options = { intents: [...] }; // 任意のIntents
+const client = new Client(options);
+
+if (typeof ReadableStream === 'undefined') {
+  global.ReadableStream = require('stream/web').ReadableStream;
+}
+
+client.on("ready", () => {
+  console.log(`logged in as ${client.user.tag}`)
+});
+
+client.on("messageCreate", (message) => {
+  if (message.content === "!ping") {
+    message.reply("pong");
+  };
+});
+
+client.login("DISCORD_BOT_TOKEN");
+```
