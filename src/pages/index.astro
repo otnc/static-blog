@@ -42,7 +42,8 @@ allPosts.forEach((p) =>
           icon="material-symbols:article-outline"
           width="28"
           height="28"
-          aria-hidden="true"></iconify-icon>
+          aria-hidden="true"
+        ></iconify-icon>
         記事一覧
       </h1>
 
@@ -53,7 +54,8 @@ allPosts.forEach((p) =>
           class="search-icon"
           width="18"
           height="18"
-          aria-hidden="true"></iconify-icon>
+          aria-hidden="true"
+        ></iconify-icon>
         <input
           type="text"
           class="search-input"
@@ -65,58 +67,54 @@ allPosts.forEach((p) =>
       </div>
 
       <!-- Tags filter (collapsible) -->
-      {
-        allTags.length > 0 && (
-          <div class="tag-filter-wrapper">
-            <button
-              class="tag-filter-toggle"
-              id="tag-filter-toggle"
-              aria-expanded="false"
-              aria-controls="tag-filter-panel"
-            >
-              <iconify-icon
-                icon="material-symbols:label-outline"
-                width="14"
-                height="14"
-                aria-hidden="true"
-              />
-              タグで絞り込む
-              <span class="tag-filter-badge" id="tag-filter-badge">
-                {allTags.length}個
-              </span>
-              <iconify-icon
-                icon="material-symbols:keyboard-arrow-down"
-                width="16"
-                height="16"
-                class="tag-filter-arrow"
-                aria-hidden="true"
-              />
-            </button>
-            <div class="tag-filter-panel" id="tag-filter-panel" hidden>
-              <div class="tag-chip-grid" id="tag-filters">
-                <button class="tag-chip tag-chip--all active" data-tag="all">
-                  <iconify-icon
-                    icon="material-symbols:apps"
-                    width="13"
-                    height="13"
-                    aria-hidden="true"
-                  />
-                  すべて
-                  <span class="tag-chip-count">{allPosts.length}</span>
+      {allTags.length > 0 && (
+        <div class="tag-filter-wrapper">
+          <button
+            class="tag-filter-toggle"
+            id="tag-filter-toggle"
+            aria-expanded="false"
+            aria-controls="tag-filter-panel"
+          >
+            <iconify-icon
+              icon="material-symbols:label-outline"
+              width="14"
+              height="14"
+              aria-hidden="true"
+            />
+            タグで絞り込む
+            <span class="tag-filter-badge" id="tag-filter-badge">
+              {allTags.length}個
+            </span>
+            <iconify-icon
+              icon="material-symbols:keyboard-arrow-down"
+              width="16"
+              height="16"
+              class="tag-filter-arrow"
+              aria-hidden="true"
+            />
+          </button>
+          <div class="tag-filter-panel" id="tag-filter-panel" hidden>
+            <div class="tag-chip-grid" id="tag-filters">
+              <button class="tag-chip tag-chip--all active" data-tag="all">
+                <iconify-icon
+                  icon="material-symbols:apps"
+                  width="13"
+                  height="13"
+                  aria-hidden="true"
+                />
+                すべて
+                <span class="tag-chip-count">{allPosts.length}</span>
+              </button>
+              {allTags.map((tag) => (
+                <button class="tag-chip" data-tag={tag}>
+                  #{tag}
+                  <span class="tag-chip-count">{tagCounts.get(tag) ?? 0}</span>
                 </button>
-                {allTags.map((tag) => (
-                  <button class="tag-chip" data-tag={tag}>
-                    #{tag}
-                    <span class="tag-chip-count">
-                      {tagCounts.get(tag) ?? 0}
-                    </span>
-                  </button>
-                ))}
-              </div>
+              ))}
             </div>
           </div>
-        )
-      }
+        </div>
+      )}
 
       <!-- Sort controls -->
       <div class="sort-controls" id="sort-controls">
@@ -125,7 +123,8 @@ allPosts.forEach((p) =>
             icon="material-symbols:arrow-downward"
             width="13"
             height="13"
-            aria-hidden="true"></iconify-icon>
+            aria-hidden="true"
+          ></iconify-icon>
           新しい順
         </button>
         <button class="sort-btn" data-sort="date-asc">
@@ -133,7 +132,8 @@ allPosts.forEach((p) =>
             icon="material-symbols:arrow-upward"
             width="13"
             height="13"
-            aria-hidden="true"></iconify-icon>
+            aria-hidden="true"
+          ></iconify-icon>
           古い順
         </button>
         <button class="sort-btn" data-sort="updated">
@@ -141,7 +141,8 @@ allPosts.forEach((p) =>
             icon="material-symbols:update"
             width="13"
             height="13"
-            aria-hidden="true"></iconify-icon>
+            aria-hidden="true"
+          ></iconify-icon>
           更新日順
         </button>
         <button class="sort-btn" data-sort="title">
@@ -149,92 +150,91 @@ allPosts.forEach((p) =>
             icon="material-symbols:sort-by-alpha"
             width="13"
             height="13"
-            aria-hidden="true"></iconify-icon>
+            aria-hidden="true"
+          ></iconify-icon>
           名前順
         </button>
       </div>
 
       <!-- Article list -->
       <ul class="article-list" id="article-list">
-        {
-          allPosts.map((post) => (
-            <li
-              data-title={post.data.title.toLowerCase()}
-              data-tags={post.data.tags.join(",").toLowerCase()}
-              data-date={post.data.pubDate.getTime()}
-              data-updated={
-                post.data.updatedDate?.getTime() || post.data.pubDate.getTime()
-              }
-              data-pinned={post.data.pinned ? "true" : "false"}
+        {allPosts.map((post) => (
+          <li
+            data-title={post.data.title.toLowerCase()}
+            data-tags={post.data.tags.join(",").toLowerCase()}
+            data-date={post.data.pubDate.getTime()}
+            data-updated={
+              post.data.updatedDate?.getTime() || post.data.pubDate.getTime()
+            }
+            data-pinned={post.data.pinned ? "true" : "false"}
+          >
+            <article
+              class={`article-card ${post.data.pinned ? "pinned" : ""} ${thumbnails.has(post.id) ? "has-thumbnail" : ""}`}
             >
-              <article
-                class={`article-card ${post.data.pinned ? "pinned" : ""} ${thumbnails.has(post.id) ? "has-thumbnail" : ""}`}
-              >
-                {thumbnails.has(post.id) && (
-                  <img
-                    class="card-thumbnail"
-                    src={thumbnails.get(post.id)}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    width="1200"
-                    height="630"
+              {thumbnails.has(post.id) && (
+                <img
+                  class="card-thumbnail"
+                  src={thumbnails.get(post.id)}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  width="1200"
+                  height="630"
+                />
+              )}
+              {post.data.pinned && (
+                <div class="pinned-badge">
+                  <iconify-icon
+                    icon="material-symbols:push-pin"
+                    width="12"
+                    height="12"
+                    aria-hidden="true"
                   />
-                )}
-                {post.data.pinned && (
-                  <div class="pinned-badge">
-                    <iconify-icon
-                      icon="material-symbols:push-pin"
-                      width="12"
-                      height="12"
-                      aria-hidden="true"
-                    />
-                    ピン止め
-                  </div>
-                )}
-                <h2 class="card-title">
-                  <a href={`/article/${post.id}`} class="card-link">
-                    {post.data.title}
-                  </a>
-                </h2>
-                <p class="card-description">{post.data.description}</p>
-                <div class="card-meta">
+                  ピン止め
+                </div>
+              )}
+              <h2 class="card-title">
+                <a href={`/article/${post.id}`} class="card-link">
+                  {post.data.title}
+                </a>
+              </h2>
+              <p class="card-description">{post.data.description}</p>
+              <div class="card-meta">
+                <span class="meta-item">
+                  <iconify-icon
+                    icon="material-symbols:calendar-today-outline"
+                    width="13"
+                    height="13"
+                    aria-hidden="true"
+                  />
+                  <FormattedDate date={post.data.pubDate} />
+                </span>
+                {post.data.updatedDate && (
                   <span class="meta-item">
                     <iconify-icon
-                      icon="material-symbols:calendar-today-outline"
+                      icon="material-symbols:update"
                       width="13"
                       height="13"
                       aria-hidden="true"
                     />
-                    <FormattedDate date={post.data.pubDate} />
+                    <FormattedDate date={post.data.updatedDate} />
                   </span>
-                  {post.data.updatedDate && (
-                    <span class="meta-item">
-                      <iconify-icon
-                        icon="material-symbols:update"
-                        width="13"
-                        height="13"
-                        aria-hidden="true"
-                      />
-                      <FormattedDate date={post.data.updatedDate} />
-                    </span>
-                  )}
-                </div>
-                {post.data.tags.length > 0 && (
-                  <div class="card-tags">
-                    {[...post.data.tags]
-                      .sort((a, b) => a.localeCompare(b, "ja"))
-                      .map((tag) => (
-                        <a href={`/tag/${tag}`} class="tag card-tag">
-                          #{tag}
-                        </a>
-                      ))}
-                  </div>
                 )}
-              </article>
-            </li>
-          ))
-        }
+              </div>
+              {post.data.tags.length > 0 && (
+                <div class="card-tags">
+                  {[...post.data.tags]
+                    .sort((a, b) => a.localeCompare(b, "ja"))
+                    .map((tag) => (
+                      <a href={`/tag/${tag}`} class="tag card-tag">
+                        #{tag}
+                      </a>
+                    ))}
+                </div>
+              )}
+            </article>
+          </li>
+        ))}
       </ul>
 
       <p
@@ -245,8 +245,10 @@ allPosts.forEach((p) =>
           icon="material-symbols:search-off"
           width="24"
           height="24"
-          aria-hidden="true"></iconify-icon>
-        <br />検索結果がありません
+          aria-hidden="true"
+        ></iconify-icon>
+        <br />
+        検索結果がありません
       </p>
     </section>
   </main>
