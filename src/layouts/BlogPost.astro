@@ -49,7 +49,7 @@ const nextPost = currentIndex > 0 ? allPosts[currentIndex - 1] : null;
 
 const articleUrl = `${SITE_URL}/article/${id}`;
 
-// 読了時間（日本語: 約500文字/分）
+// 読了時間 (日本語: 約500文字/分)
 const slotContent = await Astro.slots.render("default");
 const textLength = slotContent.replace(/<[^>]*>/g, "").length;
 const readingTime = Math.max(1, Math.ceil(textLength / 500));

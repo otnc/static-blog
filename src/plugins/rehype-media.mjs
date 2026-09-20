@@ -1,6 +1,6 @@
 /**
  * rehype: 画像構文をメディア埋め込みに拡張
- *
+
  * 型検出優先度: data-type 属性 > title 属性 > URL 拡張子
  * 対応: video, audio, pdf, youtube, twitter/x
  */
