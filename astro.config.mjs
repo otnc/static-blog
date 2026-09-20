@@ -4,6 +4,7 @@ import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 import icon from "astro-icon";
 import { defineConfig } from "astro/config";
+import { unified } from "@astrojs/markdown-remark";
 
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -77,23 +78,25 @@ export default defineConfig({
       defaultColor: false,
       wrap: false,
     },
-    remarkPlugins: [
-      remarkGfm,
-      remarkBreaks,
-      remarkEmoji,
-      remarkMath,
-      remarkUnderline, // remarkGfm の後に実行 (~~ 解決後に __ を処理)
-      remarkDetails,
-      remarkMermaid,
-      remarkGithubAlerts,
-      remarkAutoLink,
-      remarkLinkCard,
-    ],
-    rehypePlugins: [
-      [rehypeKatex, { strict: false, throwOnError: false }],
-      rehypeUnderline, // no-op (互換性のため保持)
-      rehypeMedia,
-      rehypeExternalLinks,
-    ],
+    processor: unified({
+      remarkPlugins: [
+        remarkGfm,
+        remarkBreaks,
+        remarkEmoji,
+        remarkMath,
+        remarkUnderline, // remarkGfm の後に実行 (~~ 解決後に __ を処理)
+        remarkDetails,
+        remarkMermaid,
+        remarkGithubAlerts,
+        remarkAutoLink,
+        remarkLinkCard,
+      ],
+      rehypePlugins: [
+        [rehypeKatex, { strict: false, throwOnError: false }],
+        rehypeUnderline, // no-op (互換性のため保持)
+        rehypeMedia,
+        rehypeExternalLinks,
+      ],
+    }),
   },
 });
