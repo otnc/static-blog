@@ -41,7 +41,7 @@
     "gray-matter": "^4.0.3",
     "he": "^1.2.0",
     "katex": "^0.16.47",
-    "mermaid": "^11.17.2",
+    "mermaid": "^12.0.0",
     "pdfjs-dist": "^6.3.289",
     "rehype-katex": "^7.0.1",
     "remark-breaks": "^4.0.0",
