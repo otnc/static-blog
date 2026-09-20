@@ -10,13 +10,13 @@ import matter from "gray-matter";
 import he from "he";
 import { load as cheerioLoad } from "cheerio";
 
-// ビルド時メモリキャッシュ（同一ビルド内での重複フェッチ防止）
+// ビルド時メモリキャッシュ (同一ビルド内での重複フェッチ防止)
 const ogpCache = new Map();
 
 // ---- OGP のローカル専用永続ディスクキャッシュ ----
-// 目的: ローカルの dev / build で外部 OGP の再取得（1件5秒タイムアウト）を避けて高速化する。
+// 目的: ローカルの dev / build で外部 OGP の再取得 (1件5秒タイムアウト) を避けて高速化する。
 // 重要: CI ではバイパスし常にライブ取得するため、デプロイ成果物の挙動は一切変わらない。
-//       失敗(null)はキャッシュしない（次回再取得）。`OGP_CACHE=0` で一時無効化可能。
+//       失敗(null)はキャッシュしない (次回再取得)。`OGP_CACHE=0` で一時無効化可能。
 const DISK_CACHE_ENABLED =
   !process.env.CI && process.env.OGP_CACHE !== "0";
 const DISK_CACHE_PATH = path.resolve(process.cwd(), ".cache/ogp.json");
@@ -27,7 +27,7 @@ if (DISK_CACHE_ENABLED) {
     const raw = fs.readFileSync(DISK_CACHE_PATH, "utf8");
     for (const [k, v] of Object.entries(JSON.parse(raw))) diskCache.set(k, v);
   } catch {
-    // キャッシュ未作成 or 破損時は無視（空から開始）
+    // キャッシュ未作成 or 破損時は無視 (空から開始)
   }
 }
 
@@ -136,7 +136,7 @@ function resolveLocalArticle(localPath) {
 
 // ヘルパー
 
-/** HTML から <meta> の content 値を抽出（cheerio で DOM パース） */
+/** HTML から <meta> の content 値を抽出 (cheerio で DOM パース) */
 function getMeta($, ...properties) {
   for (const prop of properties) {
     const value =
@@ -147,7 +147,7 @@ function getMeta($, ...properties) {
   return null;
 }
 
-/** レスポンスから <head> 部分のみを読み取る（最大 32KB） */
+/** レスポンスから <head> 部分のみを読み取る (最大 32KB) */
 async function readHead(res) {
   const reader = res.body?.getReader();
   if (!reader) return res.text();
@@ -176,20 +176,20 @@ async function readHead(res) {
 async function fetchOgp(url) {
   if (ogpCache.has(url)) return ogpCache.get(url);
 
-  // ローカル永続キャッシュにヒットすればネットへ行かない（CI では無効）
+  // ローカル永続キャッシュにヒットすればネットへ行かない (CI では無効)
   if (DISK_CACHE_ENABLED && diskCache.has(url)) {
     const cached = diskCache.get(url);
     ogpCache.set(url, cached);
     return cached;
   }
 
-  // 同一 URL の並行フェッチを防止（Promise を共有）
+  // 同一 URL の並行フェッチを防止 (Promise を共有)
   const promise = _doFetchOgp(url);
   ogpCache.set(url, promise);
   const result = await promise;
   ogpCache.set(url, result);
 
-  // 成功結果のみローカルへ永続化（失敗 null は保存せず次回再取得）
+  // 成功結果のみローカルへ永続化 (失敗 null は保存せず次回再取得)
   if (DISK_CACHE_ENABLED && result) {
     diskCache.set(url, result);
     persistDiskCache();
@@ -208,7 +208,7 @@ async function _doFetchOgp(url) {
       headers: {
         "User-Agent": "Mozilla/5.0 (compatible; LinkCard/1.0)",
         Accept: "text/html,application/xhtml+xml",
-        // Range ヘッダーで先頭部分のみリクエスト（対応サーバーのみ）
+        // Range ヘッダーで先頭部分のみリクエスト (対応サーバーのみ)
         Range: "bytes=0-32767",
       },
     });
@@ -430,7 +430,7 @@ export default function remarkLinkCard() {
 
             let ogp;
             if (isLocal) {
-              // ローカル記事はファイルシステムから直接取得（HTTP 不要）
+              // ローカル記事はファイルシステムから直接取得 (HTTP 不要)
               ogp = resolveLocalArticle(seg.url);
               if (!ogp && SITE_ORIGIN) {
                 // ファイルが見つからない場合は HTTP フォールバック

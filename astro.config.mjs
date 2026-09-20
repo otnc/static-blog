@@ -24,8 +24,7 @@ import { SITE_URL } from "./src/consts.ts";
 
 export default defineConfig({
   site: SITE_URL,
-  // OG 画像生成（satori+sharp）が CPU バウンドでルート生成の律速になっているため
-  // ページ生成を並列化する。出力は変わらない。
+  // OG 画像生成 (satori+sharp) が CPU バウンドでルート生成の律速になっているため、ページ生成を並列化する。出力は変わらない。
   build: {
     concurrency: 4,
   },
@@ -83,7 +82,7 @@ export default defineConfig({
       remarkBreaks,
       remarkEmoji,
       remarkMath,
-      remarkUnderline, // remarkGfm の後に実行（~~ 解決後に __ を処理）
+      remarkUnderline, // remarkGfm の後に実行 (~~ 解決後に __ を処理)
       remarkDetails,
       remarkMermaid,
       remarkGithubAlerts,
@@ -92,7 +91,7 @@ export default defineConfig({
     ],
     rehypePlugins: [
       [rehypeKatex, { strict: false, throwOnError: false }],
-      rehypeUnderline, // no-op（互換性のため保持）
+      rehypeUnderline, // no-op (互換性のため保持)
       rehypeMedia,
       rehypeExternalLinks,
     ],

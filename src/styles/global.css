@@ -1074,7 +1074,7 @@ main.container > section:first-child {
   flex-wrap: wrap;
   margin-top: 0.55em;
 }
-/* 記事ページ内のカスタムサムネイル（タグと本文の間） */
+/* 記事ページ内のカスタムサムネイル (タグと本文の間) */
 .article-thumbnail {
   display: block;
   width: 100%;
@@ -1088,7 +1088,7 @@ main.container > section:first-child {
   background: var(--card-border);
 }
 
-/* カスタムサムネイル（設定されている記事のみ表示） */
+/* カスタムサムネイル (設定されている記事のみ表示) */
 .article-card .card-thumbnail {
   display: block;
   width: calc(100% + 2.8em);
