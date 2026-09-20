@@ -22,30 +22,32 @@ const minLevel =
         icon="material-symbols:format-list-bulleted"
         width="14"
         height="14"
-        aria-hidden="true"></iconify-icon>
+        aria-hidden="true"
+      ></iconify-icon>
       目次
     </span>
     <span class="toc-collapse-btn" aria-hidden="true">
       <iconify-icon
         icon="material-symbols:keyboard-arrow-up"
         width="18"
-        height="18"></iconify-icon>
+        height="18"
+      ></iconify-icon>
     </span>
   </div>
   <div class="toc-body">
     <ul>
       <li>
-        <a href="#article-top" class="toc-link toc-link--title">{title}</a>
+        <a href="#article-top" class="toc-link toc-link--title">
+          {title}
+        </a>
       </li>
-      {
-        headings.map((h) => (
-          <li style={`padding-left: ${(h.level - minLevel + 1) * 1.1}em`}>
-            <a href={`#${h.id}`} class="toc-link">
-              {h.text}
-            </a>
-          </li>
-        ))
-      }
+      {headings.map((h) => (
+        <li style={`padding-left: ${(h.level - minLevel + 1) * 1.1}em`}>
+          <a href={`#${h.id}`} class="toc-link">
+            {h.text}
+          </a>
+        </li>
+      ))}
     </ul>
   </div>
 </nav>

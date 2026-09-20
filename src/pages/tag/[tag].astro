@@ -43,7 +43,8 @@ const { tag, posts } = Astro.props as {
           icon="material-symbols:label-outline"
           width="28"
           height="28"
-          aria-hidden="true"></iconify-icon>
+          aria-hidden="true"
+        ></iconify-icon>
         #{tag}
       </h1>
       <p style="color: var(--text-muted); margin-bottom: 1.5em;">
@@ -51,58 +52,56 @@ const { tag, posts } = Astro.props as {
       </p>
 
       <ul class="article-list">
-        {
-          posts.map((post) => (
-            <li>
-              <a
-                href={`/article/${post.id}`}
-                class={`article-card ${post.data.pinned ? "pinned" : ""}`}
-              >
-                {post.data.pinned && (
-                  <div class="pinned-badge">
-                    <iconify-icon
-                      icon="material-symbols:push-pin"
-                      width="12"
-                      height="12"
-                      aria-hidden="true"
-                    />
-                    ピン止め
-                  </div>
-                )}
-                <h2 class="card-title">{post.data.title}</h2>
-                <div class="card-meta">
+        {posts.map((post) => (
+          <li>
+            <a
+              href={`/article/${post.id}`}
+              class={`article-card ${post.data.pinned ? "pinned" : ""}`}
+            >
+              {post.data.pinned && (
+                <div class="pinned-badge">
+                  <iconify-icon
+                    icon="material-symbols:push-pin"
+                    width="12"
+                    height="12"
+                    aria-hidden="true"
+                  />
+                  ピン止め
+                </div>
+              )}
+              <h2 class="card-title">{post.data.title}</h2>
+              <div class="card-meta">
+                <span class="meta-item">
+                  <iconify-icon
+                    icon="material-symbols:calendar-today-outline"
+                    width="13"
+                    height="13"
+                    aria-hidden="true"
+                  />
+                  <FormattedDate date={post.data.pubDate} />
+                </span>
+                {post.data.updatedDate && (
                   <span class="meta-item">
                     <iconify-icon
-                      icon="material-symbols:calendar-today-outline"
+                      icon="material-symbols:update"
                       width="13"
                       height="13"
                       aria-hidden="true"
                     />
-                    <FormattedDate date={post.data.pubDate} />
+                    <FormattedDate date={post.data.updatedDate} />
                   </span>
-                  {post.data.updatedDate && (
-                    <span class="meta-item">
-                      <iconify-icon
-                        icon="material-symbols:update"
-                        width="13"
-                        height="13"
-                        aria-hidden="true"
-                      />
-                      <FormattedDate date={post.data.updatedDate} />
-                    </span>
-                  )}
-                </div>
-                {post.data.tags.length > 0 && (
-                  <div class="card-tags">
-                    {post.data.tags.map((t) => (
-                      <span class="tag">#{t}</span>
-                    ))}
-                  </div>
                 )}
-              </a>
-            </li>
-          ))
-        }
+              </div>
+              {post.data.tags.length > 0 && (
+                <div class="card-tags">
+                  {post.data.tags.map((t) => (
+                    <span class="tag">#{t}</span>
+                  ))}
+                </div>
+              )}
+            </a>
+          </li>
+        ))}
       </ul>
 
       <div style="margin-top: 2em;">
@@ -114,7 +113,8 @@ const { tag, posts } = Astro.props as {
             icon="material-symbols:arrow-back"
             width="16"
             height="16"
-            aria-hidden="true"></iconify-icon>
+            aria-hidden="true"
+          ></iconify-icon>
           全記事一覧に戻る
         </a>
       </div>

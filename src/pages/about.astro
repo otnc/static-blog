@@ -21,27 +21,22 @@ import {
           icon="material-symbols:person-outline"
           width="28"
           height="28"
-          aria-hidden="true"></iconify-icon>
+          aria-hidden="true"
+        ></iconify-icon>
         About
       </h1>
 
-      <div
-        style="display: flex; align-items: center; gap: 1.5em; margin-bottom: 2em;"
-      >
+      <div style="display: flex; align-items: center; gap: 1.5em; margin-bottom: 2em;">
         <img
           src="/icon.png"
           alt={AUTHOR_NAME}
           style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--accent); margin: 0;"
         />
         <div>
-          <h2
-            style="margin: 0 0 0.25em; font-size: 1.3rem; border: none; padding: 0;"
-          >
+          <h2 style="margin: 0 0 0.25em; font-size: 1.3rem; border: none; padding: 0;">
             {AUTHOR_NAME}
           </h2>
-          <p style="margin: 0; color: var(--text-secondary);">
-            {AUTHOR_BIO}
-          </p>
+          <p style="margin: 0; color: var(--text-secondary);">{AUTHOR_BIO}</p>
         </div>
       </div>
 
@@ -108,14 +103,18 @@ import {
           Actionsでビルドし、GitHub Pagesで公開しています。
         </p>
         <p>
-          <u
-            ><i
-              >ブログの内容や画像などの資料は <a
+          <u>
+            <i>
+              ブログの内容や画像などの資料は{" "}
+              <a
                 href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
-                no-referrer>CC BY-NC-SA 4.0</a
-              > で公開されています。</i
-            ></u
-          >
+                no-referrer
+              >
+                CC BY-NC-SA 4.0
+              </a>{" "}
+              で公開されています。
+            </i>
+          </u>
         </p>
       </div>
     </section>

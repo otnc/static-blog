@@ -86,54 +86,50 @@ while ((headingMatch = headingRegex.exec(slotContent)) !== null) {
               icon="material-symbols:calendar-today-outline"
               width="14"
               height="14"
-              aria-hidden="true"></iconify-icon>
+              aria-hidden="true"
+            ></iconify-icon>
             <FormattedDate date={pubDate} />
           </span>
-          {
-            updatedDate && (
-              <span class="meta-item">
-                <iconify-icon
-                  icon="material-symbols:update"
-                  width="14"
-                  height="14"
-                  aria-hidden="true"
-                />
-                <FormattedDate date={updatedDate} />
-              </span>
-            )
-          }
+          {updatedDate && (
+            <span class="meta-item">
+              <iconify-icon
+                icon="material-symbols:update"
+                width="14"
+                height="14"
+                aria-hidden="true"
+              />
+              <FormattedDate date={updatedDate} />
+            </span>
+          )}
           <span class="meta-item reading-time">
             <iconify-icon
               icon="material-symbols:schedule-outline"
               width="14"
               height="14"
-              aria-hidden="true"></iconify-icon>
+              aria-hidden="true"
+            ></iconify-icon>
             約{readingTime}分
           </span>
         </div>
-        {
-          sortedTags.length > 0 && (
-            <div class="article-tags">
-              {sortedTags.map((tag) => (
-                <a href={`/tag/${tag}`} class="tag">
-                  #{tag}
-                </a>
-              ))}
-            </div>
-          )
-        }
-        {
-          thumbnail && (
-            <img
-              class="article-thumbnail"
-              src={thumbnail}
-              alt=""
-              decoding="async"
-              width="1200"
-              height="630"
-            />
-          )
-        }
+        {sortedTags.length > 0 && (
+          <div class="article-tags">
+            {sortedTags.map((tag) => (
+              <a href={`/tag/${tag}`} class="tag">
+                #{tag}
+              </a>
+            ))}
+          </div>
+        )}
+        {thumbnail && (
+          <img
+            class="article-thumbnail"
+            src={thumbnail}
+            alt=""
+            decoding="async"
+            width="1200"
+            height="630"
+          />
+        )}
       </header>
 
       <div class="article-content">
@@ -143,12 +139,12 @@ while ((headingMatch = headingRegex.exec(slotContent)) !== null) {
       <ShareButtons url={articleUrl} title={title} />
 
       <ArticleNav
-        prevPost={prevPost
-          ? { id: prevPost.id, title: prevPost.data.title }
-          : null}
-        nextPost={nextPost
-          ? { id: nextPost.id, title: nextPost.data.title }
-          : null}
+        prevPost={
+          prevPost ? { id: prevPost.id, title: prevPost.data.title } : null
+        }
+        nextPost={
+          nextPost ? { id: nextPost.id, title: nextPost.data.title } : null
+        }
       />
     </article>
   </main>
@@ -173,7 +169,6 @@ while ((headingMatch = headingRegex.exec(slotContent)) !== null) {
       }
     });
   </script>
-
   <!-- KaTeX fallback -->
   <script>
     async function initKatexFallback() {
@@ -200,7 +195,6 @@ while ((headingMatch = headingRegex.exec(slotContent)) !== null) {
 
     initKatexFallback();
   </script>
-
   <!-- Mermaid -->
   <script>
     async function initMermaid() {
@@ -249,7 +243,6 @@ while ((headingMatch = headingRegex.exec(slotContent)) !== null) {
 
     initMermaid().then(watchTheme);
   </script>
-
   <!-- Code copy buttons -->
   <script>
     function addCodeCopyButtons() {
@@ -295,7 +288,6 @@ while ((headingMatch = headingRegex.exec(slotContent)) !== null) {
 
     addCodeCopyButtons();
   </script>
-
   <!-- Wrap tables for horizontal scroll -->
   <script>
     document
@@ -308,7 +300,6 @@ while ((headingMatch = headingRegex.exec(slotContent)) !== null) {
         wrapper.appendChild(table);
       });
   </script>
-
   <!-- PDF viewer (PDF.js) -->
   <script>
     type PdfModule = typeof import("pdfjs-dist");
@@ -574,7 +565,8 @@ while ((headingMatch = headingRegex.exec(slotContent)) !== null) {
                   ? "material-symbols:view-day-outline"
                   : "material-symbols:slideshow",
               );
-            const labelEl = modeBtn.querySelector<HTMLElement>(".pdf-mode-label");
+            const labelEl =
+              modeBtn.querySelector<HTMLElement>(".pdf-mode-label");
             if (labelEl) labelEl.textContent = label;
             modeBtn.setAttribute("aria-label", label);
             modeBtn.title = label;
@@ -630,7 +622,10 @@ while ((headingMatch = headingRegex.exec(slotContent)) !== null) {
         // ── キーボード操作 ──
         root.tabIndex = 0;
         root.addEventListener("keydown", (e) => {
-          if (mode === "slide" && (e.key === "ArrowRight" || e.key === "ArrowDown")) {
+          if (
+            mode === "slide" &&
+            (e.key === "ArrowRight" || e.key === "ArrowDown")
+          ) {
             goTo(currentPage + 1);
             e.preventDefault();
           } else if (
@@ -705,8 +700,9 @@ while ((headingMatch = headingRegex.exec(slotContent)) !== null) {
     }
 
     function setupPdfViewers() {
-      const viewers =
-        document.querySelectorAll<HTMLElement>(".pdf-viewer[data-pdf-src]");
+      const viewers = document.querySelectorAll<HTMLElement>(
+        ".pdf-viewer[data-pdf-src]",
+      );
       if (viewers.length === 0) return;
       const io = new IntersectionObserver(
         (entries, obs) => {
@@ -724,11 +720,11 @@ while ((headingMatch = headingRegex.exec(slotContent)) !== null) {
 
     setupPdfViewers();
   </script>
-
   <!-- Twitter embed -->
   <script
     is:inline
     async
     src="https://platform.twitter.com/widgets.js"
-    charset="utf-8"></script>
+    charset="utf-8"
+  ></script>
 </BaseLayout>
