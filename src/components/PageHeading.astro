@@ -1,0 +1,18 @@
+---
+interface Props {
+  /** iconify のアイコン名 (例: material-symbols:article-outline) */
+  icon: string;
+}
+
+const { icon } = Astro.props;
+---
+
+<h1 class="page-heading" style="margin-top: 0;">
+  <iconify-icon
+    icon={icon}
+    width="28"
+    height="28"
+    aria-hidden="true"
+  ></iconify-icon>
+  <slot />
+</h1>

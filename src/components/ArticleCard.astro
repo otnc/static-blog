@@ -1,0 +1,54 @@
+---
+import type { CollectionEntry } from "astro:content";
+import PinnedBadge from "./PinnedBadge.astro";
+import PostMeta from "./PostMeta.astro";
+import PostTags from "./PostTags.astro";
+
+interface Props {
+  post: CollectionEntry<"blog">;
+  /** カスタムサムネイルの URL (full のときだけ表示する) */
+  thumbnail?: string;
+  /**
+   * false: サムネイルと説明つきのカード (記事一覧)。
+   * true: タイトルと日付だけの、カード全体がリンクのカード (タグ別一覧)。
+   */
+  compact?: boolean;
+}
+
+const { post, thumbnail, compact = false } = Astro.props;
+const { title, description, pubDate, updatedDate, tags, pinned } = post.data;
+const href = `/article/${post.id}`;
+const cardClass = `article-card ${pinned ? "pinned" : ""}`;
+---
+
+{compact ? (
+  <a href={href} class={cardClass}>
+    {pinned && <PinnedBadge />}
+    <h2 class="card-title">{title}</h2>
+    <PostMeta pubDate={pubDate} updatedDate={updatedDate} />
+    <PostTags tags={tags} />
+  </a>
+) : (
+  <article class={`${cardClass} ${thumbnail ? "has-thumbnail" : ""}`}>
+    {thumbnail && (
+      <img
+        class="card-thumbnail"
+        src={thumbnail}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        width="1200"
+        height="630"
+      />
+    )}
+    {pinned && <PinnedBadge />}
+    <h2 class="card-title">
+      <a href={href} class="card-link">
+        {title}
+      </a>
+    </h2>
+    <p class="card-description">{description}</p>
+    <PostMeta pubDate={pubDate} updatedDate={updatedDate} />
+    <PostTags tags={tags} linked />
+  </article>
+)}

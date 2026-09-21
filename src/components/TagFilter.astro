@@ -1,0 +1,85 @@
+---
+interface Props {
+  tags: { name: string; count: number }[];
+  /** 「すべて」チップに出す記事の総数 */
+  total: number;
+}
+
+const { tags, total } = Astro.props;
+---
+
+{tags.length > 0 && (
+  <div class="tag-filter-wrapper">
+    <button
+      class="tag-filter-toggle"
+      id="tag-filter-toggle"
+      aria-expanded="false"
+      aria-controls="tag-filter-panel"
+    >
+      <iconify-icon
+        icon="material-symbols:label-outline"
+        width="14"
+        height="14"
+        aria-hidden="true"
+      />
+      タグで絞り込む
+      <span class="tag-filter-badge" id="tag-filter-badge">
+        {tags.length}個
+      </span>
+      <iconify-icon
+        icon="material-symbols:keyboard-arrow-down"
+        width="16"
+        height="16"
+        class="tag-filter-arrow"
+        aria-hidden="true"
+      />
+    </button>
+    <div class="tag-filter-panel" id="tag-filter-panel" hidden>
+      <div class="tag-chip-grid" id="tag-filters">
+        <button
+          class="tag-chip tag-chip--all active"
+          data-tag="all"
+          aria-pressed="true"
+        >
+          <iconify-icon
+            icon="material-symbols:apps"
+            width="13"
+            height="13"
+            aria-hidden="true"
+          />
+          すべて
+          <span class="tag-chip-count">{total}</span>
+        </button>
+        {tags.map(({ name, count }) => (
+          <button class="tag-chip" data-tag={name} aria-pressed="false">
+            #{name}
+            <span class="tag-chip-count">{count}</span>
+          </button>
+        ))}
+      </div>
+      <div class="tag-filter-footer">
+        <div
+          class="tag-mode"
+          id="tag-mode-controls"
+          role="group"
+          aria-label="タグの絞り込み条件"
+          hidden
+        >
+          <button
+            class="tag-mode-btn active"
+            data-mode="and"
+            aria-pressed="true"
+          >
+            すべて含む (AND)
+          </button>
+          <button class="tag-mode-btn" data-mode="or" aria-pressed="false">
+            いずれか含む (OR)
+          </button>
+        </div>
+        <button class="tag-clear" id="tag-clear" hidden>
+          選択を解除
+        </button>
+      </div>
+    </div>
+  </div>
+)}

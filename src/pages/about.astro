@@ -1,7 +1,7 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import Header from "../components/Header.astro";
-import Footer from "../components/Footer.astro";
+import SiteLayout from "../layouts/SiteLayout.astro";
+import PageSection from "../components/PageSection.astro";
+import PageHeading from "../components/PageHeading.astro";
 import {
   GITHUB_URL,
   TWITTER_HANDLE,
@@ -12,112 +12,100 @@ import {
 } from "../consts";
 ---
 
-<BaseLayout title="About" description="私について">
-  <Header />
-  <main class="container">
-    <section style="padding: 2em 0;">
-      <h1 class="page-heading" style="margin-top: 0;">
-        <iconify-icon
-          icon="material-symbols:person-outline"
-          width="28"
-          height="28"
-          aria-hidden="true"
-        ></iconify-icon>
-        About
-      </h1>
+<SiteLayout title="About" description="私について">
+  <PageSection>
+    <PageHeading icon="material-symbols:person-outline">About</PageHeading>
 
-      <div style="display: flex; align-items: center; gap: 1.5em; margin-bottom: 2em;">
-        <img
-          src="/icon.png"
-          alt={AUTHOR_NAME}
-          style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--accent); margin: 0;"
-        />
-        <div>
-          <h2 style="margin: 0 0 0.25em; font-size: 1.3rem; border: none; padding: 0;">
-            {AUTHOR_NAME}
-          </h2>
-          <p style="margin: 0; color: var(--text-secondary);">{AUTHOR_BIO}</p>
-        </div>
+    <div style="display: flex; align-items: center; gap: 1.5em; margin-bottom: 2em;">
+      <img
+        src="/icon.png"
+        alt={AUTHOR_NAME}
+        style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--accent); margin: 0;"
+      />
+      <div>
+        <h2 style="margin: 0 0 0.25em; font-size: 1.3rem; border: none; padding: 0;">
+          {AUTHOR_NAME}
+        </h2>
+        <p style="margin: 0; color: var(--text-secondary);">{AUTHOR_BIO}</p>
       </div>
+    </div>
 
-      <div class="article-content">
-        <h2>リンク</h2>
-        <ul>
-          <li>
-            <a href={PORTFOLIO_URL} target="_blank" rel="noopener noreferrer">
-              <iconify-icon
-                icon="material-symbols:language"
-                width="16"
-                height="16"
-                aria-hidden="true"
-                style="vertical-align: middle; margin-right: 0.3em;"
-              ></iconify-icon>
-              ポートフォリオ
-            </a>
-          </li>
-          <li>
-            <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
-              <iconify-icon
-                icon="simple-icons:github"
-                width="15"
-                height="15"
-                aria-hidden="true"
-                style="vertical-align: middle; margin-right: 0.3em;"
-              ></iconify-icon>
-              GitHub
-            </a>
-          </li>
-          <li>
+    <div class="article-content">
+      <h2>リンク</h2>
+      <ul>
+        <li>
+          <a href={PORTFOLIO_URL} target="_blank" rel="noopener noreferrer">
+            <iconify-icon
+              icon="material-symbols:language"
+              width="16"
+              height="16"
+              aria-hidden="true"
+              style="vertical-align: middle; margin-right: 0.3em;"
+            ></iconify-icon>
+            ポートフォリオ
+          </a>
+        </li>
+        <li>
+          <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
+            <iconify-icon
+              icon="simple-icons:github"
+              width="15"
+              height="15"
+              aria-hidden="true"
+              style="vertical-align: middle; margin-right: 0.3em;"
+            ></iconify-icon>
+            GitHub
+          </a>
+        </li>
+        <li>
+          <a
+            href={`https://twitter.com/${TWITTER_HANDLE.replace("@", "")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <iconify-icon
+              icon="simple-icons:twitter"
+              width="14"
+              height="14"
+              aria-hidden="true"
+              style="vertical-align: middle; margin-right: 0.3em;"
+            ></iconify-icon>
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href={MISSKEY_URL} target="_blank" rel="noopener noreferrer">
+            <iconify-icon
+              icon="simple-icons:misskey"
+              width="14"
+              height="14"
+              aria-hidden="true"
+              style="vertical-align: middle; margin-right: 0.3em;"
+            ></iconify-icon>
+            Misskey
+          </a>
+        </li>
+      </ul>
+
+      <h2>このブログについて</h2>
+      <p>
+        Astro + MDX + JS Pluginsで構築された静的ブログです。GitHub
+        Actionsでビルドし、GitHub Pagesで公開しています。
+      </p>
+      <p>
+        <u>
+          <i>
+            ブログの内容や画像などの資料は{" "}
             <a
-              href={`https://twitter.com/${TWITTER_HANDLE.replace("@", "")}`}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
+              no-referrer
             >
-              <iconify-icon
-                icon="simple-icons:twitter"
-                width="14"
-                height="14"
-                aria-hidden="true"
-                style="vertical-align: middle; margin-right: 0.3em;"
-              ></iconify-icon>
-              Twitter
-            </a>
-          </li>
-          <li>
-            <a href={MISSKEY_URL} target="_blank" rel="noopener noreferrer">
-              <iconify-icon
-                icon="simple-icons:misskey"
-                width="14"
-                height="14"
-                aria-hidden="true"
-                style="vertical-align: middle; margin-right: 0.3em;"
-              ></iconify-icon>
-              Misskey
-            </a>
-          </li>
-        </ul>
-
-        <h2>このブログについて</h2>
-        <p>
-          Astro + MDX + JS Pluginsで構築された静的ブログです。GitHub
-          Actionsでビルドし、GitHub Pagesで公開しています。
-        </p>
-        <p>
-          <u>
-            <i>
-              ブログの内容や画像などの資料は{" "}
-              <a
-                href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
-                no-referrer
-              >
-                CC BY-NC-SA 4.0
-              </a>{" "}
-              で公開されています。
-            </i>
-          </u>
-        </p>
-      </div>
-    </section>
-  </main>
-  <Footer />
-</BaseLayout>
+              CC BY-NC-SA 4.0
+            </a>{" "}
+            で公開されています。
+          </i>
+        </u>
+      </p>
+    </div>
+  </PageSection>
+</SiteLayout>

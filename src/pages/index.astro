@@ -1,12 +1,14 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import Header from "../components/Header.astro";
-import Footer from "../components/Footer.astro";
-import FormattedDate from "../components/FormattedDate.astro";
 import type { CollectionEntry } from "astro:content";
 import { getCollection } from "astro:content";
+import SiteLayout from "../layouts/SiteLayout.astro";
+import PageSection from "../components/PageSection.astro";
+import PageHeading from "../components/PageHeading.astro";
+import SearchBox from "../components/SearchBox.astro";
+import TagFilter from "../components/TagFilter.astro";
+import SortControls from "../components/SortControls.astro";
+import ArticleCard from "../components/ArticleCard.astro";
 import { SITE_TITLE, SITE_DESCRIPTION, sortPosts } from "../consts";
-import AboutSidebar from "../components/AboutSidebar.astro";
 import { findCustomThumbnailUrl } from "../utils/thumbnail";
 
 type BlogPost = CollectionEntry<"blog">;
@@ -23,362 +25,59 @@ for (const post of allPosts) {
 }
 
 // Collect all tags with per-tag article counts
-const allTags = [...new Set(allPosts.flatMap((p) => p.data.tags))].sort(
-  (a, b) => a.localeCompare(b, "ja"),
-);
 const tagCounts = new Map<string, number>();
 allPosts.forEach((p) =>
   p.data.tags.forEach((t) => tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1)),
 );
+const tags = [...tagCounts.keys()]
+  .sort((a, b) => a.localeCompare(b, "ja"))
+  .map((name) => ({ name, count: tagCounts.get(name) ?? 0 }));
 ---
 
-<BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
-  <Header />
-  <AboutSidebar />
-  <main class="container">
-    <section style="padding: 2em 0;">
-      <h1 class="page-heading" style="margin-top: 0;">
-        <iconify-icon
-          icon="material-symbols:article-outline"
-          width="28"
-          height="28"
-          aria-hidden="true"
-        ></iconify-icon>
-        記事一覧
-      </h1>
+<SiteLayout title={SITE_TITLE} description={SITE_DESCRIPTION} sidebar>
+  <PageSection>
+    <PageHeading icon="material-symbols:article-outline">記事一覧</PageHeading>
 
-      <!-- Search -->
-      <div class="search-wrapper">
-        <iconify-icon
-          icon="material-symbols:search"
-          class="search-icon"
-          width="18"
-          height="18"
-          aria-hidden="true"
-        ></iconify-icon>
-        <input
-          type="text"
-          class="search-input"
-          id="search-input"
-          placeholder="記事を検索..."
-          autocomplete="off"
-          aria-label="記事を検索"
-        />
-      </div>
+    <SearchBox />
+    <TagFilter tags={tags} total={allPosts.length} />
+    <SortControls />
 
-      <!-- Tags filter (collapsible) -->
-      {allTags.length > 0 && (
-        <div class="tag-filter-wrapper">
-          <button
-            class="tag-filter-toggle"
-            id="tag-filter-toggle"
-            aria-expanded="false"
-            aria-controls="tag-filter-panel"
-          >
-            <iconify-icon
-              icon="material-symbols:label-outline"
-              width="14"
-              height="14"
-              aria-hidden="true"
-            />
-            タグで絞り込む
-            <span class="tag-filter-badge" id="tag-filter-badge">
-              {allTags.length}個
-            </span>
-            <iconify-icon
-              icon="material-symbols:keyboard-arrow-down"
-              width="16"
-              height="16"
-              class="tag-filter-arrow"
-              aria-hidden="true"
-            />
-          </button>
-          <div class="tag-filter-panel" id="tag-filter-panel" hidden>
-            <div class="tag-chip-grid" id="tag-filters">
-              <button class="tag-chip tag-chip--all active" data-tag="all">
-                <iconify-icon
-                  icon="material-symbols:apps"
-                  width="13"
-                  height="13"
-                  aria-hidden="true"
-                />
-                すべて
-                <span class="tag-chip-count">{allPosts.length}</span>
-              </button>
-              {allTags.map((tag) => (
-                <button class="tag-chip" data-tag={tag}>
-                  #{tag}
-                  <span class="tag-chip-count">{tagCounts.get(tag) ?? 0}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+    <p class="result-count" id="result-count" aria-live="polite">
+      {allPosts.length}件の記事
+    </p>
 
-      <!-- Sort controls -->
-      <div class="sort-controls" id="sort-controls">
-        <button class="sort-btn active" data-sort="date-desc">
-          <iconify-icon
-            icon="material-symbols:arrow-downward"
-            width="13"
-            height="13"
-            aria-hidden="true"
-          ></iconify-icon>
-          新しい順
-        </button>
-        <button class="sort-btn" data-sort="date-asc">
-          <iconify-icon
-            icon="material-symbols:arrow-upward"
-            width="13"
-            height="13"
-            aria-hidden="true"
-          ></iconify-icon>
-          古い順
-        </button>
-        <button class="sort-btn" data-sort="updated">
-          <iconify-icon
-            icon="material-symbols:update"
-            width="13"
-            height="13"
-            aria-hidden="true"
-          ></iconify-icon>
-          更新日順
-        </button>
-        <button class="sort-btn" data-sort="title">
-          <iconify-icon
-            icon="material-symbols:sort-by-alpha"
-            width="13"
-            height="13"
-            aria-hidden="true"
-          ></iconify-icon>
-          名前順
-        </button>
-      </div>
+    <ul class="article-list" id="article-list">
+      {allPosts.map((post) => (
+        <li
+          data-title={post.data.title.toLowerCase()}
+          data-tags={post.data.tags.join(",").toLowerCase()}
+          data-date={post.data.pubDate.getTime()}
+          data-updated={
+            post.data.updatedDate?.getTime() || post.data.pubDate.getTime()
+          }
+          data-pinned={post.data.pinned ? "true" : "false"}
+        >
+          <ArticleCard post={post} thumbnail={thumbnails.get(post.id)} />
+        </li>
+      ))}
+    </ul>
 
-      <!-- Article list -->
-      <ul class="article-list" id="article-list">
-        {allPosts.map((post) => (
-          <li
-            data-title={post.data.title.toLowerCase()}
-            data-tags={post.data.tags.join(",").toLowerCase()}
-            data-date={post.data.pubDate.getTime()}
-            data-updated={
-              post.data.updatedDate?.getTime() || post.data.pubDate.getTime()
-            }
-            data-pinned={post.data.pinned ? "true" : "false"}
-          >
-            <article
-              class={`article-card ${post.data.pinned ? "pinned" : ""} ${thumbnails.has(post.id) ? "has-thumbnail" : ""}`}
-            >
-              {thumbnails.has(post.id) && (
-                <img
-                  class="card-thumbnail"
-                  src={thumbnails.get(post.id)}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  width="1200"
-                  height="630"
-                />
-              )}
-              {post.data.pinned && (
-                <div class="pinned-badge">
-                  <iconify-icon
-                    icon="material-symbols:push-pin"
-                    width="12"
-                    height="12"
-                    aria-hidden="true"
-                  />
-                  ピン止め
-                </div>
-              )}
-              <h2 class="card-title">
-                <a href={`/article/${post.id}`} class="card-link">
-                  {post.data.title}
-                </a>
-              </h2>
-              <p class="card-description">{post.data.description}</p>
-              <div class="card-meta">
-                <span class="meta-item">
-                  <iconify-icon
-                    icon="material-symbols:calendar-today-outline"
-                    width="13"
-                    height="13"
-                    aria-hidden="true"
-                  />
-                  <FormattedDate date={post.data.pubDate} />
-                </span>
-                {post.data.updatedDate && (
-                  <span class="meta-item">
-                    <iconify-icon
-                      icon="material-symbols:update"
-                      width="13"
-                      height="13"
-                      aria-hidden="true"
-                    />
-                    <FormattedDate date={post.data.updatedDate} />
-                  </span>
-                )}
-              </div>
-              {post.data.tags.length > 0 && (
-                <div class="card-tags">
-                  {[...post.data.tags]
-                    .sort((a, b) => a.localeCompare(b, "ja"))
-                    .map((tag) => (
-                      <a href={`/tag/${tag}`} class="tag card-tag">
-                        #{tag}
-                      </a>
-                    ))}
-                </div>
-              )}
-            </article>
-          </li>
-        ))}
-      </ul>
-
-      <p
-        id="no-results"
-        style="display: none; text-align: center; color: var(--text-muted); padding: 2em;"
-      >
-        <iconify-icon
-          icon="material-symbols:search-off"
-          width="24"
-          height="24"
-          aria-hidden="true"
-        ></iconify-icon>
-        <br />
-        検索結果がありません
-      </p>
-    </section>
-  </main>
-  <Footer />
+    <p
+      id="no-results"
+      style="display: none; text-align: center; color: var(--text-muted); padding: 2em;"
+    >
+      <iconify-icon
+        icon="material-symbols:search-off"
+        width="24"
+        height="24"
+        aria-hidden="true"
+      ></iconify-icon>
+      <br />
+      検索結果がありません
+    </p>
+  </PageSection>
 
   <script>
-    const searchInput = document.getElementById(
-      "search-input",
-    ) as HTMLInputElement;
-    const articleList = document.getElementById("article-list")!;
-    const noResults = document.getElementById("no-results")!;
-    const items = Array.from(articleList.querySelectorAll("li"));
-
-    // Search
-    searchInput?.addEventListener("input", () => {
-      filterAndSort();
-    });
-
-    // Tag filter panel toggle
-    const tagToggle = document.getElementById(
-      "tag-filter-toggle",
-    ) as HTMLButtonElement | null;
-    const tagPanel = document.getElementById("tag-filter-panel");
-    const tagBadge = document.getElementById("tag-filter-badge");
-
-    tagToggle?.addEventListener("click", () => {
-      const expanded = tagToggle.getAttribute("aria-expanded") === "true";
-      tagToggle.setAttribute("aria-expanded", expanded ? "false" : "true");
-      if (expanded) {
-        tagPanel?.setAttribute("hidden", "");
-      } else {
-        tagPanel?.removeAttribute("hidden");
-      }
-    });
-
-    // Tag filter
-    const totalTagCount = document.querySelectorAll(
-      "#tag-filters [data-tag]:not([data-tag='all'])",
-    ).length;
-    let activeTag = "all";
-    document.getElementById("tag-filters")?.addEventListener("click", (e) => {
-      const btn = (e.target as HTMLElement).closest(
-        "[data-tag]",
-      ) as HTMLButtonElement;
-      if (!btn) return;
-      document
-        .querySelectorAll("#tag-filters [data-tag]")
-        .forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      activeTag = btn.getAttribute("data-tag") || "all";
-      // Update badge: show selected tag or total count
-      if (tagBadge) {
-        tagBadge.textContent =
-          activeTag === "all" ? `${totalTagCount}個` : `#${activeTag}`;
-      }
-      if (tagToggle) {
-        tagToggle.classList.toggle("has-filter", activeTag !== "all");
-      }
-      filterAndSort();
-    });
-
-    // Sort
-    let activeSort = "date-desc";
-    document.getElementById("sort-controls")?.addEventListener("click", (e) => {
-      const btn = (e.target as HTMLElement).closest(
-        ".sort-btn",
-      ) as HTMLButtonElement;
-      if (!btn) return;
-      document
-        .querySelectorAll("#sort-controls .sort-btn")
-        .forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      activeSort = btn.getAttribute("data-sort") || "date-desc";
-      filterAndSort();
-    });
-
-    function filterAndSort() {
-      const query = searchInput?.value.toLowerCase() || "";
-
-      // Filter
-      let visible = items.filter((item) => {
-        const title = item.getAttribute("data-title") || "";
-        const tags = item.getAttribute("data-tags") || "";
-        const matchesSearch =
-          !query || title.includes(query) || tags.includes(query);
-        const matchesTag =
-          activeTag === "all" ||
-          tags.split(",").includes(activeTag.toLowerCase());
-        return matchesSearch && matchesTag;
-      });
-
-      // Sort
-      visible.sort((a, b) => {
-        const aPinned = a.getAttribute("data-pinned") === "true";
-        const bPinned = b.getAttribute("data-pinned") === "true";
-        if (aPinned && !bPinned) return -1;
-        if (!aPinned && bPinned) return 1;
-
-        switch (activeSort) {
-          case "date-asc":
-            return (
-              Number(a.getAttribute("data-date")) -
-              Number(b.getAttribute("data-date"))
-            );
-          case "updated":
-            return (
-              Number(b.getAttribute("data-updated")) -
-              Number(a.getAttribute("data-updated"))
-            );
-          case "title":
-            return (a.getAttribute("data-title") || "").localeCompare(
-              b.getAttribute("data-title") || "",
-              "ja",
-            );
-          default: // date-desc
-            return (
-              Number(b.getAttribute("data-date")) -
-              Number(a.getAttribute("data-date"))
-            );
-        }
-      });
-
-      // Render
-      items.forEach((item) => (item.style.display = "none"));
-      visible.forEach((item) => {
-        item.style.display = "";
-        articleList.appendChild(item);
-      });
-
-      noResults.style.display = visible.length === 0 ? "" : "none";
-    }
+    import "../scripts/article-filter";
   </script>
-</BaseLayout>
+</SiteLayout>

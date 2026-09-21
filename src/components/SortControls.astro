@@ -1,0 +1,22 @@
+---
+const options = [
+  { key: "date-desc", icon: "arrow-downward", label: "新しい順" },
+  { key: "date-asc", icon: "arrow-upward", label: "古い順" },
+  { key: "updated", icon: "update", label: "更新日順" },
+  { key: "title", icon: "sort-by-alpha", label: "名前順" },
+];
+---
+
+<div class="sort-controls" id="sort-controls">
+  {options.map(({ key, icon, label }, i) => (
+    <button class:list={["sort-btn", { active: i === 0 }]} data-sort={key}>
+      <iconify-icon
+        icon={`material-symbols:${icon}`}
+        width="13"
+        height="13"
+        aria-hidden="true"
+      />
+      {label}
+    </button>
+  ))}
+</div>

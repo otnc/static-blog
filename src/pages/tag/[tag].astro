@@ -1,12 +1,11 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
-import Header from "../../components/Header.astro";
-import Footer from "../../components/Footer.astro";
-import FormattedDate from "../../components/FormattedDate.astro";
 import type { CollectionEntry } from "astro:content";
 import { getCollection } from "astro:content";
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import PageSection from "../../components/PageSection.astro";
+import PageHeading from "../../components/PageHeading.astro";
+import ArticleCard from "../../components/ArticleCard.astro";
 import { sortPosts } from "../../consts";
-import AboutSidebar from "../../components/AboutSidebar.astro";
 
 type BlogPost = CollectionEntry<"blog">;
 
@@ -33,92 +32,38 @@ const { tag, posts } = Astro.props as {
 };
 ---
 
-<BaseLayout title={`#${tag} の記事`} description={`タグ「${tag}」の記事一覧`}>
-  <Header />
-  <AboutSidebar />
-  <main class="container">
-    <section style="padding: 2em 0;">
-      <h1 class="page-heading" style="margin-top: 0;">
+<SiteLayout
+  title={`#${tag} の記事`}
+  description={`タグ「${tag}」の記事一覧`}
+  sidebar
+>
+  <PageSection>
+    <PageHeading icon="material-symbols:label-outline">#{tag}</PageHeading>
+    <p style="color: var(--text-muted); margin-bottom: 1.5em;">
+      {posts.length}件の記事
+    </p>
+
+    <ul class="article-list">
+      {posts.map((post) => (
+        <li>
+          <ArticleCard post={post} compact />
+        </li>
+      ))}
+    </ul>
+
+    <div style="margin-top: 2em;">
+      <a
+        href="/"
+        style="display: inline-flex; align-items: center; gap: 0.3em; color: var(--accent);"
+      >
         <iconify-icon
-          icon="material-symbols:label-outline"
-          width="28"
-          height="28"
+          icon="material-symbols:arrow-back"
+          width="16"
+          height="16"
           aria-hidden="true"
         ></iconify-icon>
-        #{tag}
-      </h1>
-      <p style="color: var(--text-muted); margin-bottom: 1.5em;">
-        {posts.length}件の記事
-      </p>
-
-      <ul class="article-list">
-        {posts.map((post) => (
-          <li>
-            <a
-              href={`/article/${post.id}`}
-              class={`article-card ${post.data.pinned ? "pinned" : ""}`}
-            >
-              {post.data.pinned && (
-                <div class="pinned-badge">
-                  <iconify-icon
-                    icon="material-symbols:push-pin"
-                    width="12"
-                    height="12"
-                    aria-hidden="true"
-                  />
-                  ピン止め
-                </div>
-              )}
-              <h2 class="card-title">{post.data.title}</h2>
-              <div class="card-meta">
-                <span class="meta-item">
-                  <iconify-icon
-                    icon="material-symbols:calendar-today-outline"
-                    width="13"
-                    height="13"
-                    aria-hidden="true"
-                  />
-                  <FormattedDate date={post.data.pubDate} />
-                </span>
-                {post.data.updatedDate && (
-                  <span class="meta-item">
-                    <iconify-icon
-                      icon="material-symbols:update"
-                      width="13"
-                      height="13"
-                      aria-hidden="true"
-                    />
-                    <FormattedDate date={post.data.updatedDate} />
-                  </span>
-                )}
-              </div>
-              {post.data.tags.length > 0 && (
-                <div class="card-tags">
-                  {post.data.tags.map((t) => (
-                    <span class="tag">#{t}</span>
-                  ))}
-                </div>
-              )}
-            </a>
-          </li>
-        ))}
-      </ul>
-
-      <div style="margin-top: 2em;">
-        <a
-          href="/"
-          style="display: inline-flex; align-items: center; gap: 0.3em; color: var(--accent);"
-        >
-          <iconify-icon
-            icon="material-symbols:arrow-back"
-            width="16"
-            height="16"
-            aria-hidden="true"
-          ></iconify-icon>
-          全記事一覧に戻る
-        </a>
-      </div>
-    </section>
-  </main>
-  <Footer />
-</BaseLayout>
+        全記事一覧に戻る
+      </a>
+    </div>
+  </PageSection>
+</SiteLayout>
