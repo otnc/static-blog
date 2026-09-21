@@ -1,6 +1,6 @@
 // 記事一覧 (トップページ) の検索・タグ絞り込み・並べ替え。
 // 対象の DOM は SearchBox / TagFilter / SortControls と、index.astro の #article-list / #no-results / #result-count。
-// 状態は URL (?q= / ?tag= / ?mode=or / ?sort=) に反映し、読み込み時に復元する。
+// 状態は URL (?q= / ?tags=A,B / ?mode=and / ?sort=) に反映し、読み込み時に復元する。タグの条件は OR が既定。
 
 const searchInput = document.getElementById(
   "search-input",
@@ -33,7 +33,7 @@ const validSorts = new Set(sortButtons.map((b) => b.dataset.sort!));
 
 const DEFAULT_SORT = "date-desc";
 const selectedTags = new Set<string>();
-let tagMode: "and" | "or" = "and";
+let tagMode: "and" | "or" = "or";
 let activeSort = DEFAULT_SORT;
 
 function setPanelOpen(open: boolean) {
@@ -77,18 +77,21 @@ function renderTagUI() {
 
 // Keep the current filter / sort / search in the URL (shareable, survives reload)
 function syncUrl() {
-  const params = new URLSearchParams();
+  const parts: string[] = [];
   const query = searchInput?.value.trim();
-  if (query) params.set("q", query);
+  if (query) parts.push(`q=${encodeURIComponent(query)}`);
   // chip order keeps the URL stable regardless of click order
-  tagChips.forEach((chip) => {
-    if (selectedTags.has(chip.dataset.tag!)) {
-      params.append("tag", chip.dataset.tag!);
-    }
-  });
-  if (selectedTags.size > 1 && tagMode === "or") params.set("mode", "or");
-  if (activeSort !== DEFAULT_SORT) params.set("sort", activeSort);
-  const qs = params.toString();
+  const tags = tagChips
+    .map((chip) => chip.dataset.tag!)
+    .filter((tag) => selectedTags.has(tag));
+  if (tags.length > 0) {
+    parts.push(`tags=${tags.map(encodeURIComponent).join(",")}`);
+  }
+  if (tags.length > 1 && tagMode === "and") parts.push("mode=and");
+  if (activeSort !== DEFAULT_SORT) {
+    parts.push(`sort=${encodeURIComponent(activeSort)}`);
+  }
+  const qs = parts.join("&");
   try {
     history.replaceState(
       null,
@@ -102,10 +105,10 @@ function syncUrl() {
 
 function restoreFromUrl() {
   const params = new URLSearchParams(location.search);
-  params.getAll("tag").forEach((t) => {
+  (params.get("tags") ?? "").split(",").forEach((t) => {
     if (knownTags.has(t)) selectedTags.add(t);
   });
-  tagMode = params.get("mode") === "or" ? "or" : "and";
+  tagMode = params.get("mode") === "and" ? "and" : "or";
   const sort = params.get("sort");
   if (sort && validSorts.has(sort)) activeSort = sort;
   sortButtons.forEach((b) => {

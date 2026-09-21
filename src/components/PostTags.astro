@@ -1,24 +1,20 @@
 ---
+import { tagFilterUrl } from "../utils/tag-url";
+
 interface Props {
   tags: string[];
-  /** true のときタグ一覧ページへのリンクにする (別のリンクの中に置くときは false) */
-  linked?: boolean;
 }
 
-const { tags, linked = false } = Astro.props;
+const { tags } = Astro.props;
 const sorted = [...tags].sort((a, b) => a.localeCompare(b, "ja"));
 ---
 
 {sorted.length > 0 && (
   <div class="card-tags">
-    {sorted.map((tag) =>
-      linked ? (
-        <a href={`/tag/${tag}`} class="tag card-tag">
-          #{tag}
-        </a>
-      ) : (
-        <span class="tag">#{tag}</span>
-      ),
-    )}
+    {sorted.map((tag) => (
+      <a href={tagFilterUrl([tag])} class="tag card-tag">
+        #{tag}
+      </a>
+    ))}
   </div>
 )}

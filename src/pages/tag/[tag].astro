@@ -1,69 +1,31 @@
 ---
-import type { CollectionEntry } from "astro:content";
+// タグ別ページは廃止し、トップのタグ絞り込み (?tags=) に統合した。
+// 共有済みの /tag/<タグ> のリンクを切らないよう、転送だけを行う。
 import { getCollection } from "astro:content";
-import SiteLayout from "../../layouts/SiteLayout.astro";
-import PageSection from "../../components/PageSection.astro";
-import PageHeading from "../../components/PageHeading.astro";
-import ArticleCard from "../../components/ArticleCard.astro";
-import { sortPosts } from "../../consts";
-
-type BlogPost = CollectionEntry<"blog">;
+import { tagFilterUrl } from "../../utils/tag-url";
 
 export async function getStaticPaths() {
-  const allPosts: BlogPost[] = (await getCollection("blog")).filter(
-    (p) => !p.data.hidden,
-  );
-  const allTags = [...new Set(allPosts.flatMap((p) => p.data.tags))].sort(
-    (a, b) => a.localeCompare(b, "ja"),
-  );
-
-  return allTags.map((tag) => ({
-    params: { tag },
-    props: {
-      tag,
-      posts: sortPosts(allPosts.filter((p) => p.data.tags.includes(tag))),
-    },
-  }));
+  const posts = (await getCollection("blog")).filter((p) => !p.data.hidden);
+  const tags = new Set(posts.flatMap((p) => p.data.tags));
+  return [...tags].map((tag) => ({ params: { tag } }));
 }
 
-const { tag, posts } = Astro.props as {
-  tag: string;
-  posts: BlogPost[];
-};
+const { tag } = Astro.params;
+const to = tagFilterUrl([tag!]);
 ---
 
-<SiteLayout
-  title={`#${tag} の記事`}
-  description={`タグ「${tag}」の記事一覧`}
-  sidebar
->
-  <PageSection>
-    <PageHeading icon="material-symbols:label-outline">#{tag}</PageHeading>
-    <p style="color: var(--text-muted); margin-bottom: 1.5em;">
-      {posts.length}件の記事
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>転送中...</title>
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={new URL(to, Astro.site)} />
+    <meta http-equiv="refresh" content={`0; url=${to}`} />
+  </head>
+  <body>
+    <p>
+      <a href={to}>タグ「{tag}」の記事一覧へ移動します</a>
     </p>
-
-    <ul class="article-list">
-      {posts.map((post) => (
-        <li>
-          <ArticleCard post={post} compact />
-        </li>
-      ))}
-    </ul>
-
-    <div style="margin-top: 2em;">
-      <a
-        href="/"
-        style="display: inline-flex; align-items: center; gap: 0.3em; color: var(--accent);"
-      >
-        <iconify-icon
-          icon="material-symbols:arrow-back"
-          width="16"
-          height="16"
-          aria-hidden="true"
-        ></iconify-icon>
-        全記事一覧に戻る
-      </a>
-    </div>
-  </PageSection>
-</SiteLayout>
+  </body>
+</html>
