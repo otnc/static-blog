@@ -1567,6 +1567,73 @@ main.container > section:first-child {
   opacity: 1;
 }
 
+/* ===== Tag filter: AND / OR switch, clear, result count ===== */
+.tag-filter-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6em;
+  margin-top: 0.85em;
+}
+.tag-filter-footer:not(:has(:not([hidden]))) {
+  display: none;
+}
+.tag-mode {
+  display: inline-flex;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.tag-mode[hidden],
+.tag-clear[hidden] {
+  display: none;
+}
+.tag-mode-btn {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: none;
+  padding: 0.3em 0.85em;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.tag-mode-btn + .tag-mode-btn {
+  border-left: 1.5px solid var(--border);
+}
+.tag-mode-btn:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+.tag-mode-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+.tag-clear {
+  margin-left: auto;
+  background: none;
+  border: none;
+  padding: 0.3em 0.4em;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  color: var(--text-muted);
+  cursor: pointer;
+  text-decoration: underline;
+}
+.tag-clear:hover {
+  color: var(--accent);
+}
+.result-count {
+  margin: 0 0 0.75em;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
 /* ===== Table horizontal scroll ===== */
 .table-scroll {
   overflow-x: auto;
