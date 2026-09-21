@@ -1,0 +1,33 @@
+---
+import FormattedDate from "./FormattedDate.astro";
+
+interface Props {
+  pubDate: Date;
+  updatedDate?: Date | null;
+}
+
+const { pubDate, updatedDate } = Astro.props;
+---
+
+<div class="card-meta">
+  <span class="meta-item">
+    <iconify-icon
+      icon="material-symbols:calendar-today-outline"
+      width="13"
+      height="13"
+      aria-hidden="true"
+    ></iconify-icon>
+    <FormattedDate date={pubDate} />
+  </span>
+  {updatedDate && (
+    <span class="meta-item">
+      <iconify-icon
+        icon="material-symbols:update"
+        width="13"
+        height="13"
+        aria-hidden="true"
+      />
+      <FormattedDate date={updatedDate} />
+    </span>
+  )}
+</div>
