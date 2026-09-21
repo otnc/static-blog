@@ -31,7 +31,8 @@ export default defineConfig({
   },
   integrations: [
     mdx(),
-    sitemap(),
+    // /tag/<タグ> は ?tags= への転送ページなので載せない
+    sitemap({ filter: (page) => !new URL(page).pathname.startsWith("/tag/") }),
     icon({
       include: {
         "material-symbols": [

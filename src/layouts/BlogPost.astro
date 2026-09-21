@@ -11,6 +11,7 @@ import { getCollection, render } from "astro:content";
 import { SITE_URL, sortPosts } from "../consts";
 import he from "he";
 import { findCustomThumbnailUrl } from "../utils/thumbnail";
+import { tagFilterUrl } from "../utils/tag-url";
 
 interface Props {
   id: string;
@@ -114,7 +115,7 @@ while ((headingMatch = headingRegex.exec(slotContent)) !== null) {
         {sortedTags.length > 0 && (
           <div class="article-tags">
             {sortedTags.map((tag) => (
-              <a href={`/tag/${tag}`} class="tag">
+              <a href={tagFilterUrl([tag])} class="tag">
                 #{tag}
               </a>
             ))}
