@@ -1,0 +1,26 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import AboutSidebar from "../components/AboutSidebar.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  noindex?: boolean;
+  /** プロフィールのサイドバーを表示する */
+  sidebar?: boolean;
+}
+
+const { sidebar = false, ...layoutProps } = Astro.props;
+---
+
+<BaseLayout {...layoutProps}>
+  <Header />
+  {sidebar && <AboutSidebar />}
+  <main class="container">
+    <slot />
+  </main>
+  <Footer />
+</BaseLayout>
